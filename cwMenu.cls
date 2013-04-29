@@ -20,7 +20,7 @@ Public Enum enmMenuPopUpPosition
   PopupBehaviourDropDownLeftAligned = 1
 End Enum
 
-Event ReplaceCaption(Caption As String)
+Event ReplaceCaption(ByVal CurItem As cMenuItem, Caption As String)
 Event Click(ByVal CurMenuItemPath As String)
 Event MenuBarEntryShift(ByVal ShiftLeft As Boolean)
 Event MenuDestroyed(ByVal DestroyedByKeyPress As Boolean)
@@ -173,7 +173,7 @@ Dim i As Long, dx As Double, dy As Double, Caption As String
     If Caption = "-" Then
       dy = 8
     Else
-      If Not RM Is Nothing Then RM.RaiseReplaceCaption Caption
+      If Not RM Is Nothing Then RM.RaiseReplaceCaption DSItem, Caption
       dy = mRowHeight
     End If
     
@@ -193,9 +193,9 @@ Dim i As Long, dx As Double, dy As Double, Caption As String
   mMenuHeight = mMenuHeight + 4
 End Sub
 
-Public Sub RaiseReplaceCaption(Caption As String)
-  RaiseEvent ReplaceCaption(Caption)
-  W.RaiseBubblingEvent Me, "ReplaceCaption", Caption
+Public Sub RaiseReplaceCaption(CurItem As cMenuItem, Caption As String)
+  RaiseEvent ReplaceCaption(CurItem, Caption)
+  W.RaiseBubblingEvent Me, "ReplaceCaption", CurItem, Caption
 End Sub
 Public Sub RaiseClick(CurMenuItemPath As String)
 Dim MItem As cMenuItem
