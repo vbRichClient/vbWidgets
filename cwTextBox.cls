@@ -792,7 +792,7 @@ Static LastTextHeight&
   SetCurFont CC
 
   CC.SetLineWidth 1
-  CC.SetLineCap CAIRO_LINE_CAP_SQUARE
+  CC.SetLineCap Cairo_LINE_CAP_SQUARE
   
   mLastTextHeight = CC.GetFontHeight()
  
@@ -816,7 +816,7 @@ Static LastTextHeight&
     End If
   End If
   
-  Color = IIf(W.Focused, W.SelectionColor, W.DisabledColor)
+  Color = IIf(W.Focused, W.SelectionColor, W.ShadeColor(W.DisabledColor, 1.3))
   
   If mSelLength Then
     CalcCoords mSelStart, SelStartRow, SelStartPos
@@ -893,7 +893,7 @@ Static LastTextHeight&
         End If
   
         CC.SetLineWidth 1, True '<- last param ensures a rounded, pixel-aligned LineWidth
-        CC.SetLineCap CAIRO_LINE_CAP_BUTT
+        CC.SetLineCap Cairo_LINE_CAP_BUTT
         CC.SetSourceColor vbBlack, Alpha
           x2 = Int((Ext + x1 + AlgnOffs + 0.5) * Zoom) / Zoom 'pixel-aligned x-Offset
           CC.DrawLine x2, y1 - 0.5, x2, y1 + RowHeight - 0.5, True

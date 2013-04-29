@@ -83,6 +83,8 @@ End Property
 Public Sub InitAndShow(InitiatorWidget As cWidgetBase, Optional DataSource As cMenuItem, Optional ByVal DirectionBehaviour As enmMenuPopUpPosition)
 Dim MenuItem As cwMenuItem, PopupPosX As Single, PopupPosY As Single, MousePosX As Long, MousePosY As Long
  
+  If Not PopUp Is Nothing Then DestroyPopup
+  
   Set mInitiatorWidget = InitiatorWidget
   If mInitiatorWidget Is Nothing Then Exit Sub
   If TypeOf mInitiatorWidget.object Is cwMenuItem Then
@@ -90,7 +92,7 @@ Dim MenuItem As cwMenuItem, PopupPosX As Single, PopupPosY As Single, MousePosX 
     Set mInitiatorWidget = mInitiatorWidget.Parent
   End If
   If mInitiatorWidget.Root.MouseKeyDown Then mInitiatorWidget.MouseUp 1, 0, 0, 0
-  
+ 
   If Not DataSource Is Nothing Then Set mDataSource = DataSource
   ConstructMenuFromDataSource mDataSource
   mMenuWidth = mMenuWidth * mInitiatorWidget.Zoom
@@ -122,7 +124,6 @@ Dim MenuItem As cwMenuItem, PopupPosX As Single, PopupPosY As Single, MousePosX 
     End Select
   End If
   
-  If Not PopUp Is Nothing Then PopUp.Unload
   Set PopUp = New cfPopUp
   PopUp.Load Me, PopupPosX, PopupPosY, mMenuWidth, mMenuHeight, mInitiatorWidget.Zoom
   
