@@ -14,7 +14,8 @@ Attribute VB_Exposed = True
 Option Explicit
 
 Public Enum enmMenuPopUpPosition
-  PopupBehaviourMenuRight = -1
+  PopupBehaviourMousePosExpandLeft = -2
+  PopupBehaviourMousePosExpandRight = -1
   PopupBehaviourDropDownRightAligned = 0
   PopupBehaviourDropDownLeftAligned = 1
 End Enum
@@ -63,9 +64,9 @@ End Property
 Public Property Get MenuKeyPath() As String
 Dim M As cwMenu
   If mInitiatorWidget Is Nothing Then Exit Property
-  If Not mInitiatorWidget.Object Is Nothing Then
-    If TypeOf mInitiatorWidget.Object Is cwMenu Then
-      Set M = mInitiatorWidget.Object
+  If Not mInitiatorWidget.object Is Nothing Then
+    If TypeOf mInitiatorWidget.object Is cwMenu Then
+      Set M = mInitiatorWidget.object
       MenuKeyPath = M.MenuKeyPath & ">" & mDataSource.Key
     Else
       MenuKeyPath = mDataSource.Key
@@ -79,13 +80,13 @@ Public Property Get MenuItemKeyPath() As String
   If Not mActiveMenuItem Is Nothing Then MenuItemKeyPath = MenuItemKeyPath & ">" & mActiveMenuItem.Widget.Key
 End Property
 
-Public Sub InitAndShow(InitiatorWidget As cWidgetBase, Optional DataSource As cMenuItem, Optional ByVal DirectionBehaviour As enmMenuPopUpPosition, Optional ByVal AtCurrentMousePos As Boolean)
+Public Sub InitAndShow(InitiatorWidget As cWidgetBase, Optional DataSource As cMenuItem, Optional ByVal DirectionBehaviour As enmMenuPopUpPosition)
 Dim MenuItem As cwMenuItem, PopupPosX As Single, PopupPosY As Single, MousePosX As Long, MousePosY As Long
  
   Set mInitiatorWidget = InitiatorWidget
   If mInitiatorWidget Is Nothing Then Exit Sub
-  If TypeOf mInitiatorWidget.Object Is cwMenuItem Then
-    Set MenuItem = mInitiatorWidget.Object
+  If TypeOf mInitiatorWidget.object Is cwMenuItem Then
+    Set MenuItem = mInitiatorWidget.object
     Set mInitiatorWidget = mInitiatorWidget.Parent
   End If
   If mInitiatorWidget.Root.MouseKeyDown Then mInitiatorWidget.MouseUp 1, 0, 0, 0
@@ -96,9 +97,8 @@ Dim MenuItem As cwMenuItem, PopupPosX As Single, PopupPosY As Single, MousePosX 
   mMenuHeight = mMenuHeight * mInitiatorWidget.Zoom
   
   MousePosX = -1: MousePosY = -1
-  If AtCurrentMousePos Then Cairo.GetMouseCursorPos MousePosX, MousePosY
-  
-  If TypeOf mInitiatorWidget.Object Is cwMenu Then 'it was an internal call
+ 
+  If TypeOf mInitiatorWidget.object Is cwMenu Then 'it was an internal call
     MenuItem.Widget.CalculateScreenPopupOffsets mMenuWidth, mMenuHeight, PopupPosX, PopupPosY, True, MousePosX, MousePosY
   Else 'the initial usercall
     Set mActiveRootWidget = mInitiatorWidget.Root.ActiveWidget
@@ -112,8 +112,13 @@ Dim MenuItem As cwMenuItem, PopupPosX As Single, PopupPosY As Single, MousePosX 
         If MousePosY <> PopupPosY Then PopupPosY = PopupPosY - mInitiatorWidget.Height * mInitiatorWidget.Zoom
       Case PopupBehaviourDropDownRightAligned
         mInitiatorWidget.CalculateScreenPopupOffsets mMenuWidth, mMenuHeight, PopupPosX, PopupPosY, False, MousePosX, MousePosY
-      Case PopupBehaviourMenuRight
+      Case PopupBehaviourMousePosExpandRight
+        Cairo.GetMouseCursorPos MousePosX, MousePosY
+        MousePosY = MousePosY + 1
         mInitiatorWidget.CalculateScreenPopupOffsets mMenuWidth, mMenuHeight, PopupPosX, PopupPosY, True, MousePosX, MousePosY
+      Case PopupBehaviourMousePosExpandLeft
+        Cairo.GetMouseCursorPos MousePosX, MousePosY
+        mInitiatorWidget.CalculateScreenPopupOffsets mMenuWidth, mMenuHeight, PopupPosX, PopupPosY, False, MousePosX, MousePosY
     End Select
   End If
   
@@ -121,7 +126,7 @@ Dim MenuItem As cwMenuItem, PopupPosX As Single, PopupPosY As Single, MousePosX 
   Set PopUp = New cfPopUp
   PopUp.Load Me, PopupPosX, PopupPosY, mMenuWidth, mMenuHeight, mInitiatorWidget.Zoom
   
-  If Not TypeOf mInitiatorWidget.Object Is cwMenu Then
+  If Not TypeOf mInitiatorWidget.object Is cwMenu Then
     mInitiatorWidget.Root.BlockKeyEvents True, PopUp.Form
   End If
 
@@ -205,9 +210,9 @@ Dim M As cwMenu, WasRootMenu As Boolean
   If RootMenu Is Me Then WasRootMenu = True
 
   If Not mInitiatorWidget Is Nothing Then
-    If Not mInitiatorWidget.Object Is Nothing Then
-      If TypeOf mInitiatorWidget.Object Is cwMenu Then
-        Set M = mInitiatorWidget.Object
+    If Not mInitiatorWidget.object Is Nothing Then
+      If TypeOf mInitiatorWidget.object Is cwMenu Then
+        Set M = mInitiatorWidget.object
         Set M.SubMenu = Nothing
       Else
         Widgets.RemoveAll
@@ -251,9 +256,9 @@ End Property
 Public Property Get RootMenu() As cwMenu
 Dim M As cwMenu
   If mInitiatorWidget Is Nothing Then Exit Property
-  If Not mInitiatorWidget.Object Is Nothing Then
-    If TypeOf mInitiatorWidget.Object Is cwMenu Then
-      Set M = mInitiatorWidget.Object
+  If Not mInitiatorWidget.object Is Nothing Then
+    If TypeOf mInitiatorWidget.object Is cwMenu Then
+      Set M = mInitiatorWidget.object
       Set RootMenu = M.RootMenu
     Else
       Set RootMenu = Me
@@ -285,16 +290,16 @@ Private Sub PopUp_MouseClickOutside()
 End Sub
 Private Sub PopUp_CheckForAdditionalCloseConditions()
   If mInitiatorWidget Is Nothing Then Exit Sub
-  If mInitiatorWidget.Object Is Nothing Then Exit Sub
-  If TypeOf mInitiatorWidget.Object Is cwMenu Then Exit Sub
+  If mInitiatorWidget.object Is Nothing Then Exit Sub
+  If TypeOf mInitiatorWidget.object Is cwMenu Then Exit Sub
   If mInitiatorWidget.Root Is Nothing Then Exit Sub
   If Not RootMenu Is Me Then Stop
   If Not mActiveRootWidget Is mInitiatorWidget.Root.ActiveWidget Then DestroyPopup
 End Sub
 Private Sub mInitiatorWidget_ContainerResize()
   If mInitiatorWidget Is Nothing Then Exit Sub
-  If mInitiatorWidget.Object Is Nothing Then Exit Sub
-  If Not TypeOf mInitiatorWidget.Object Is cwMenu Then DestroyPopup
+  If mInitiatorWidget.object Is Nothing Then Exit Sub
+  If Not TypeOf mInitiatorWidget.object Is cwMenu Then DestroyPopup
 End Sub
 
 '---------------- End of Popup-Deactivation-Checks ------------------
