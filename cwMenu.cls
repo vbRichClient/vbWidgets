@@ -194,6 +194,7 @@ End Sub
 
 Public Sub RaiseReplaceCaption(Caption As String)
   RaiseEvent ReplaceCaption(Caption)
+  W.RaiseBubblingEvent Me, "ReplaceCaption", Caption
 End Sub
 Public Sub RaiseClick(CurMenuItemPath As String)
 Dim MItem As cMenuItem
@@ -203,6 +204,7 @@ Dim MItem As cMenuItem
     DestroyPopup
   If Err Then Err.Clear: Exit Sub
   RaiseEvent Click(CurMenuItemPath)
+  W.RaiseBubblingEvent Me, "Click", CurMenuItemPath
 End Sub
  
 Public Sub DestroyPopup()
@@ -230,7 +232,10 @@ Dim M As cwMenu, WasRootMenu As Boolean
   Set mActiveMenuItem = Nothing
   Set mActiveRootWidget = Nothing
   Set mInitiatorWidget = Nothing
-  If WasRootMenu Then RaiseEvent MenuDestroyed(mDestroyedByKeyPress)
+  If WasRootMenu Then
+    RaiseEvent MenuDestroyed(mDestroyedByKeyPress)
+    W.RaiseBubblingEvent Me, "MenuDestroyed", mDestroyedByKeyPress
+  End If
   mDestroyedByKeyPress = False
 End Sub
  
@@ -372,6 +377,7 @@ Public Sub KeyDown(KeyCode As Integer, Shift As Integer)
     Case vbKeyLeft
         If RootMenu Is Me Then
           RaiseEvent MenuBarEntryShift(True)
+          W.RaiseBubblingEvent Me, "MenuBarEntryShift", True
         Else
           DestroyPopup
         End If
@@ -380,7 +386,10 @@ Public Sub KeyDown(KeyCode As Integer, Shift As Integer)
         If MItem.Widget.Enabled And Not MItem.SubMenuDS Is Nothing Then
           ShowSubMenu MItem
         Else
-          If RootMenu Is Me Then RaiseEvent MenuBarEntryShift(False)
+          If RootMenu Is Me Then
+            RaiseEvent MenuBarEntryShift(False)
+            W.RaiseBubblingEvent Me, "MenuBarEntryShift", False
+          End If
         End If
       End If
     Case vbKeyUp
