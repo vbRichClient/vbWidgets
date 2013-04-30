@@ -59,6 +59,7 @@ Dim currentMenuBarItem As cwMenuBarItem
     Set currentMenuBarItem = Widgets.Add(New cwMenuBarItem, "MenuBarItem" & i, xOffs, 2, TxtWidth + 15, FontHeight * 1.6666 - 3)
     Set currentMenuBarItem.DataSource = mDataSource.SubItemByIndex(i)
     currentMenuBarItem.Widget.FontSize = W.FontSize
+    currentMenuBarItem.Widget.Enabled = mDataSource.SubItemByIndex(i).Enabled
     xOffs = xOffs + 15 + TxtWidth
   Next i
 End Property
@@ -69,7 +70,7 @@ Private Sub CurPopPup_Click(ByVal CurMenuItemPath As String)
 End Sub
 
 Private Sub CurPopPup_MenuBarEntryShift(ByVal ShiftLeft As Boolean)
-Dim MenuBarItem As cwMenuBarItem, Index As Long
+Dim MenuBarItem As cwMenuBarItem, Index As Long, i As Long
   If Widgets.Count = 0 Then Exit Sub
   For Each MenuBarItem In Widgets
     If MenuBarItem.DataSource Is CurPopPup.DataSource Then
@@ -78,13 +79,17 @@ Dim MenuBarItem As cwMenuBarItem, Index As Long
     Index = Index + 1
   Next MenuBarItem
   
-  If Index = Widgets.Count Then Exit Sub
+  If Index = Widgets.Count Then Exit Sub 'not found
   
-  Index = Index + IIf(ShiftLeft, -1, 1)
-  If Index < 0 Then Index = Widgets.Count - 1
-  If Index >= Widgets.Count Then Index = 0
+  For i = 1 To Widgets.Count 'let's try to shift the entry (trying Widgets.Count times)
+    Index = Index + IIf(ShiftLeft, -1, 1)
+    If Index < 0 Then Index = Widgets.Count - 1
+    If Index >= Widgets.Count Then Index = 0
+    
+    Set MenuBarItem = Widgets(Index + 1)
+    If MenuBarItem.Widget.Enabled Then Exit For 'in case it is disabled, we shift once more
+  Next i
   
-  Set MenuBarItem = Widgets(Index + 1)
   mBlockDestroy = True
   MenuBarItem.ShowPopUp
   MenuBarItem.Widget.Refresh
@@ -109,7 +114,7 @@ Private Sub tmrCleanup_Timer()
   Set CurPopPup = Nothing
   W.Refresh
 End Sub
-
+ 
 Private Sub W_ContainerResize()
   W.Move 0, 0, W.Parent.Width, W.Height
   W.Refresh

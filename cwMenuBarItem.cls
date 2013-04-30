@@ -42,6 +42,7 @@ End Property
 
 Public Sub ShowPopUp()
 Dim MenuBar As cwMenuBar
+  If Not W.Enabled Then Exit Sub
   Set MenuBar = W.Parent.object
   If Not MenuBar.CurPopPup Is Nothing Then
     If Not MenuBar.CurPopPup.DataSource Is mDataSource Then MenuBar.CurPopPup.DestroyPopup
@@ -50,7 +51,7 @@ Dim MenuBar As cwMenuBar
   MenuBar.CurPopPup.Widget.FontSize = W.FontSize
       MenuBar.CurPopPup.InitAndShow W, mDataSource, PopupBehaviourDropDownLeftAligned
 End Sub
-
+ 
 Private Sub W_MouseDown(Button As Integer, Shift As Integer, ByVal x As Single, ByVal y As Single)
   If Button = 1 Then ShowPopUp
 End Sub
@@ -119,10 +120,10 @@ Dim TxtWidth As Double, FontHeight As Double, Pat As cCairoPattern
   CC.SelectFont Cairo.Theme.GetIconFontName, W.FontSize, vbWhite
   CC.DrawText 0, 1, dx, dy, mDataSource.Caption, True, vbCenter, 2, 1, dtHasAccelerators
 
-  CC.SelectFont Cairo.Theme.GetIconFontName, W.FontSize, vbBlack
+  CC.SelectFont Cairo.Theme.GetIconFontName, W.FontSize, IIf(W.Enabled, W.ForeColor, W.ShadeColor(W.DisabledColor, 0.9))
   CC.DrawText 0, 0, dx, dy, mDataSource.Caption, True, vbCenter, 2, 1, dtHasAccelerators
 
-  If W.MouseOver Or IsOwnPopupVisible Then
+  If W.Enabled And (W.MouseOver Or IsOwnPopupVisible) Then
     CC.RoundedRect 0, 0, dx, dy - 1, 2.2, True
     CC.SetSourceColor vbBlack
     Set Pat = Cairo.CreateLinearPattern(0, 0, 0, dy)
