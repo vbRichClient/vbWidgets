@@ -661,7 +661,7 @@ Dim NewSel&, i&, DoRefresh As Boolean
       End If
     End If
   End If
-  If mHoverIndex >= 0 Then RaiseEvent MouseMoveOnListItem(mHoverIndex, x, y - (mHoverIndex - VScrollBar.Value) * mRowHeight - 1)
+  RaiseEvent MouseMoveOnListItem(mHoverIndex, x, y - (mHoverIndex - VScrollBar.Value) * mRowHeight - 1)
 
   If DoRefresh And Len(TScroll.Tag) = 0 Then W.Refresh
 End Sub
