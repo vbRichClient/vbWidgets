@@ -42,7 +42,7 @@ End Function
  
 Private Sub cTheme_FillThemeColorArray(DstThemeColorArray() As Long)
 Dim i As Long
-  For i = 0 To UBound(mThemeColorArray)
+  For i = UBound(mThemeColorArray) to 0 Step -1
     DstThemeColorArray(i) = mThemeColorArray(i)
   Next i
 End Sub
