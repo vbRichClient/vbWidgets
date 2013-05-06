@@ -44,11 +44,6 @@ Private Sub W_MouseMove(Button As Integer, Shift As Integer, ByVal x As Single, 
 Dim NewOutsideValue As Boolean
   
   NewOutsideValue = (x < 0 Or x > dx Or y < 0 Or y > dy)
-  If BDown And (NewOutsideValue <> OutSide) Then
-    OutSide = NewOutsideValue
-  Else
-    OutSide = NewOutsideValue
-  End If
   
   MOverArrow = IIf(ArrowType > 0 And Not OutSide And x > dx - 16, True, False)
   
