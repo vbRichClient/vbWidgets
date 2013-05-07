@@ -17,6 +17,7 @@ Event OwnerDrawItem(ByVal Index As Long, CC As cCairoContext, ByVal dx As Single
 Event Click()
 Event DblClick()
 Event MouseUpClick()
+Event MouseMoveOnListItem(ByVal HoverIndex As Long, ByVal RelX As Single, ByVal RelY As Single)
 
 Public WithEvents VList As cwVList 'we inherit visually from a preimplemented Widget
 Attribute VList.VB_VarHelpID = -1
@@ -171,6 +172,7 @@ Dim InArrowArea As Boolean
   Else
     If Not VList.ShowHoverBar Then W.Refresh
   End If
+  RaiseEvent MouseMoveOnListItem(HoverIndex, RelX, RelY)
 End Sub
 
 Private Sub VList_MouseUpClick()
