@@ -130,8 +130,8 @@ End Sub
 Private Sub Draw(CC As cCairoContext)
 Dim Pat As cCairoPattern
   Set Pat = Cairo.CreateLinearPattern(0, 0, 0, dy)
-      Pat.AddColorStop 0, vbWhite, , 0.97
-      Pat.AddColorStop 1, vbWhite, , 0.89
+      Pat.AddColorStop 0, W.BackColor, , 1.11
+      Pat.AddColorStop 1, W.BackColor, , 0.93
   CC.Paint , Pat
   CC.DrawLine 0, dy - 1, dx, dy - 1, True, 1, vbBlack, 0.3
 End Sub

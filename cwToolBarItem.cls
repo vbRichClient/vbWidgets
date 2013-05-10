@@ -102,7 +102,7 @@ Const ArrowSize& = 8
     If BDown Or Checked Then
       If MOverArrow Then CC.ClipExplicit dx - 16, 0, dx, dy
         CC.RoundedRect 0, 0, dx, dy, 2.2, True
-        CC.SetSourceColor W.BackColor, Alpha, 0.9
+        CC.SetSourceColor W.Parent.BackColor, Alpha, 0.89
         CC.Fill
       If MOverArrow Then CC.ResetClip
     End If

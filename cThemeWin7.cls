@@ -351,7 +351,7 @@ Dim Pat As cCairoPattern, Color As Long, Alpha As Single
  
         CC.SetLineWidth 2.5 / ZoomFac
         CC.SetLineCap Cairo_LINE_CAP_ROUND
-        CC.SetSourceColor vbWhite, 0.3
+        CC.SetSourceColor vbWhite, 0.3 * Alpha
         CC.MoveTo x + 0.5, y + 0.5
         CC.RelLineTo IIf(dy > dx, 0, dx - 3), IIf(dy > dx, dy - 3, 0)
         CC.Stroke
