@@ -43,6 +43,8 @@ Attribute HScrollBar.VB_VarHelpID = -1
 Private InsideDraw As Boolean
 Private mUndoDepth As Byte, HScrollX&, HScrollMax&
 
+Public UserdefinedHovering As Boolean
+
 Private WithEvents W As cWidgetBase
 Attribute W.VB_VarHelpID = -1
 Public Property Get Widget() As cWidgetBase
@@ -513,10 +515,10 @@ Private Sub W_LostFocus()
 End Sub
 
 Private Sub W_MouseEnter(ByVal MouseLeaveWidget As cWidgetBase)
-  W.Refresh
+  If Not UserdefinedHovering Then W.Refresh
 End Sub
 Private Sub W_MouseLeave(ByVal MouseEnterWidget As cWidgetBase)
-  W.Refresh
+  If Not UserdefinedHovering Then W.Refresh
 End Sub
 
 Private Sub W_MouseDown(Button As Integer, Shift As Integer, ByVal x As Single, ByVal y As Single)
