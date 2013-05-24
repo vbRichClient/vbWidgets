@@ -20,7 +20,7 @@ Attribute CurPopPup.VB_VarHelpID = -1
 Private mDataSource As cMenuItem
 Private WithEvents tmrCleanup As cTimer
 Attribute tmrCleanup.VB_VarHelpID = -1
-Private WithEvents KWatch As cKeyWatcher, ShiftOrCtrlKeyDown As Boolean, AltDown As Boolean
+Private WithEvents KWatch As cKeyWatcher, TabOrShiftOrCtrlKeyDown As Boolean, AltDown As Boolean
 Attribute KWatch.VB_VarHelpID = -1
  
 Private dx As Single, dy As Single, Alpha As Single, mBlockDestroy As Boolean
@@ -29,7 +29,7 @@ Attribute W.VB_VarHelpID = -1
 
 Private Sub Class_Initialize()
   Set W = Cairo.WidgetBase
-  Set KWatch = New_c.KeyWatcher("16,17,18") 'Shift,Ctrl,Alt - Keys
+  Set KWatch = New_c.KeyWatcher("9,16,17,18")  'Tab,Shift,Ctrl,Alt - Keys
 End Sub
 
 Public Property Get Widget() As cWidgetBase
@@ -118,12 +118,12 @@ Dim MenuBarItem As cwMenuBarItem
 End Sub
  
 Private Sub KWatch_VKeyDown(ByVal vKey As Integer, ByVal MapIdx As Long)
-  If vKey = 16 Or vKey = 17 Then ShiftOrCtrlKeyDown = True
-  If vKey = 18 And Not ShiftOrCtrlKeyDown Then AltDown = True
+  If vKey = 9 Or vKey = 16 Or vKey = 17 Then TabOrShiftOrCtrlKeyDown = True
+  If vKey = 18 And Not TabOrShiftOrCtrlKeyDown Then AltDown = True
 End Sub
 
 Private Sub KWatch_VKeyUp(ByVal vKey As Integer, ByVal MapIdx As Long)
-  If AltDown And Not ShiftOrCtrlKeyDown And CurPopPup Is Nothing And Widgets.Count > 0 Then
+  If AltDown And Not TabOrShiftOrCtrlKeyDown And CurPopPup Is Nothing And Widgets.Count > 0 Then
     Dim MenuBarItem As cwMenuBarItem
     For Each MenuBarItem In Widgets
       If MenuBarItem.Widget.MouseOver Then
@@ -141,7 +141,7 @@ Private Sub KWatch_VKeyUp(ByVal vKey As Integer, ByVal MapIdx As Long)
       End If
     Next
   End If
-  If vKey = 16 Or vKey = 17 Then ShiftOrCtrlKeyDown = False
+  If vKey = 9 Or vKey = 16 Or vKey = 17 Then TabOrShiftOrCtrlKeyDown = False
   If vKey = 18 Then AltDown = False
 End Sub
 
@@ -158,7 +158,21 @@ End Sub
  
 Private Sub W_KeyDown(KeyCode As Integer, Shift As Integer)
   If Not CurPopPup Is Nothing Then Exit Sub
+  Dim MenuBarItem As cwMenuBarItem
+  For Each MenuBarItem In Widgets
+    If MenuBarItem.Widget.MouseOver Then Exit For
+  Next
   Select Case KeyCode
+    Case vbKeyEscape
+      If Not MenuBarItem Is Nothing Then MenuBarItem.Widget.MouseLeave Nothing
+      W.Root.Widget.MouseUp 0, 0, -1, -1
+      W.Root.Refresh
+    Case vbKeyDown:
+      If Not MenuBarItem Is Nothing Then
+        MenuBarItem.Widget.MouseLeave Nothing
+        MenuBarItem.ShowPopUp
+        MenuBarItem.Widget.Refresh
+      End If
     Case vbKeyLeft:  CurPopPup_MenuBarEntryShift True
     Case vbKeyRight: CurPopPup_MenuBarEntryShift False
   End Select
