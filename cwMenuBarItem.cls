@@ -59,7 +59,11 @@ Private Sub W_MouseEnter(ByVal MouseLeaveWidget As vbRichClient5.cWidgetBase)
   If IsPopupVisible And Not IsOwnPopupVisible Then
     ShowPopUp
   End If
-  W.Refresh
+  Dim MenuBarItem As cwMenuBarItem
+  For Each MenuBarItem In W.Parent.Widgets
+    If Not W Is MenuBarItem.Widget Then MenuBarItem.Widget.MouseLeave W
+    MenuBarItem.Widget.Refresh
+  Next
   W.Parent.Refresh
 End Sub
 Private Function IsOwnPopupVisible() As Boolean
