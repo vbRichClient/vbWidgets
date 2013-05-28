@@ -32,6 +32,7 @@ Private mBorder As Boolean, mScrollBars As ScrollBarConstants
 Private mRowHeight&, mLastTextHeight As Long
 Private mInnerSpace&, mAlignment As AlignmentConstants, mVCenter As Boolean
 Private mScrollerSize!, VSValue&, VSLargeChange&, VSMax&
+Private mLocked As Boolean
 
 Private WithEvents T As cTimer, WithEvents tCaret As cTimer
 Attribute T.VB_VarHelpID = -1
@@ -90,6 +91,13 @@ Public Property Let CueBannerText(ByVal NewValue$)
   If NewValue = mText Then Exit Property
   mCueBannerText = NewValue
   W.Refresh
+End Property
+
+Public Property Get Locked() As Boolean
+  Locked = mLocked
+End Property
+Public Property Let Locked(ByVal NewValue As Boolean)
+  mLocked = NewValue
 End Property
 
 Public Property Get UndoDepth() As Byte
@@ -458,6 +466,8 @@ Private Sub W_KeyUp(KeyCode As Integer, Shift As Integer)
 End Sub
 
 Private Sub InsertText(NewText$)
+  If mLocked Then Exit Sub
+  
   mText = Left$(mText, mSelStart) & NewText & Mid$(mText, mSelStart + mSelLength + 1)
   CaretPos = mSelStart + Len(NewText)
   CalcRows
