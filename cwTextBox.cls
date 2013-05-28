@@ -23,7 +23,7 @@ Event KeyUp(KeyCode As Integer, Shift As Integer)
 Event Validate(Cancel As Boolean)
  
 Private dx As Single, dy As Single, Alpha As Single, Zoom As Single, dxx As Single, dyy As Single
-Private mText$, mPassWordChar$, mMultiLine As Boolean, mMaxRowWidth As Single, mVisibleRows&
+Private mText$, mPassWordChar$, mMultiLine As Boolean, mMaxRowWidth As Single, mVisibleRows&, mCueBannerText As String
 Private RowsCharOffset() As Long, RowsCharCount() As Long, mRowCount As Long
 Private mSelStart&, mSelLength&, SelBegin&
 Private CaretPos&, CurRow&, CurPos&, CaretInvertCounter&
@@ -79,6 +79,15 @@ Public Property Let Text(ByVal NewValue$)
   CalcRows
   W.Refresh
   RaiseEvent Change
+End Property
+
+Public Property Get CueBannerText$()
+  CueBannerText = mCueBannerText
+End Property
+Public Property Let CueBannerText(ByVal NewValue$)
+  If NewValue = mText Then Exit Property
+  mCueBannerText = NewValue
+  W.Refresh
 End Property
 
 Public Property Get UndoDepth() As Byte
@@ -904,8 +913,13 @@ Static LastTextHeight&
     j = j + 1
   Next i
   
+  If Len(mText) = 0 Then        'Shows the CueBanner Text
+    CC.SelectFont W.FontName, W.FontSize, W.DisabledColor, , True
+    CC.TextOut x1 + AlgnOffs, y1, mCueBannerText
+  End If
+  
   If mBorder Then
-    CC.SetLineWidth 1, True
+    CC.SetLineWidth IIf(W.Focused, 2.3, 1), True
     Cairo.Theme.DrawTo CC, W, thmTypeBorder, 0, 0, 0, dx, dy
   End If
   InsideDraw = False
