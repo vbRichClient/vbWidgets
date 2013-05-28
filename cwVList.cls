@@ -800,7 +800,7 @@ Dim i As Long, j As Long, ArrowSize As Long, Width As Single, Pat As cCairoPatte
                   Pat.AddColorStop 1, W.HoverColor, Alpha * 0.3, 1
               CC.RoundedRect 0, 1, Width, mRowHeight - 1, 3, True
                 CC.Fill True, Pat
-                CC.SetSourceColor W.SelectionColor, Alpha * 0.8, 1.15
+                CC.SetSourceColor W.HoverColor, Alpha * 0.8, 1.07
               CC.Stroke
             End If
           End If

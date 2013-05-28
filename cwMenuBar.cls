@@ -20,14 +20,16 @@ Attribute CurPopPup.VB_VarHelpID = -1
 Private mDataSource As cMenuItem
 Private WithEvents tmrCleanup As cTimer
 Attribute tmrCleanup.VB_VarHelpID = -1
-
+Private WithEvents KWatch As cKeyWatcher, TabOrShiftOrCtrlKeyDown As Boolean, AltDown As Boolean
+Attribute KWatch.VB_VarHelpID = -1
+ 
 Private dx As Single, dy As Single, Alpha As Single, mBlockDestroy As Boolean
 Private WithEvents W As cWidgetBase
 Attribute W.VB_VarHelpID = -1
 
 Private Sub Class_Initialize()
   Set W = Cairo.WidgetBase
-      W.CanGetFocus = False
+  Set KWatch = New_c.KeyWatcher("9,16,17,18")  'Tab,Shift,Ctrl,Alt - Keys
 End Sub
 
 Public Property Get Widget() As cWidgetBase
@@ -73,8 +75,13 @@ Private Sub CurPopPup_MenuBarEntryShift(ByVal ShiftLeft As Boolean)
 Dim MenuBarItem As cwMenuBarItem, Index As Long, i As Long
   If Widgets.Count = 0 Then Exit Sub
   For Each MenuBarItem In Widgets
-    If MenuBarItem.DataSource Is CurPopPup.DataSource Then
-      Exit For
+    If CurPopPup Is Nothing Then
+      If MenuBarItem.Widget.MouseOver Then
+        MenuBarItem.Widget.MouseLeave Nothing
+        Exit For
+      End If
+    Else
+      If MenuBarItem.DataSource Is CurPopPup.DataSource Then Exit For
     End If
     Index = Index + 1
   Next MenuBarItem
@@ -109,6 +116,35 @@ Dim MenuBarItem As cwMenuBarItem
   
   Set tmrCleanup = New_c.Timer(50, True)
 End Sub
+ 
+Private Sub KWatch_VKeyDown(ByVal vKey As Integer, ByVal MapIdx As Long)
+  If vKey = 9 Or vKey = 16 Or vKey = 17 Then TabOrShiftOrCtrlKeyDown = True
+  If vKey = 18 And Not TabOrShiftOrCtrlKeyDown Then AltDown = True
+End Sub
+
+Private Sub KWatch_VKeyUp(ByVal vKey As Integer, ByVal MapIdx As Long)
+  If AltDown And Not TabOrShiftOrCtrlKeyDown And CurPopPup Is Nothing And Widgets.Count > 0 Then
+    Dim MenuBarItem As cwMenuBarItem
+    For Each MenuBarItem In Widgets
+      If MenuBarItem.Widget.MouseOver Then
+        MenuBarItem.Widget.MouseLeave Nothing
+        W.Root.Widget.MouseUp 0, 0, -1, -1
+        W.Root.Refresh
+        Exit Sub
+      End If
+    Next
+    For Each MenuBarItem In Widgets
+      If MenuBarItem.Widget.Enabled Then
+        W.Root.Widget.SetFocus
+        MenuBarItem.Widget.MouseEnter Nothing
+        Exit For
+      End If
+    Next
+  End If
+  If vKey = 9 Or vKey = 16 Or vKey = 17 Then TabOrShiftOrCtrlKeyDown = False
+  If vKey = 18 Then AltDown = False
+End Sub
+
 Private Sub tmrCleanup_Timer()
   Set tmrCleanup = Nothing
   Set CurPopPup = Nothing
@@ -120,6 +156,28 @@ Private Sub W_ContainerResize()
   W.Refresh
 End Sub
  
+Private Sub W_KeyDown(KeyCode As Integer, Shift As Integer)
+  If Not CurPopPup Is Nothing Then Exit Sub
+  Dim MenuBarItem As cwMenuBarItem
+  For Each MenuBarItem In Widgets
+    If MenuBarItem.Widget.MouseOver Then Exit For
+  Next
+  Select Case KeyCode
+    Case vbKeyEscape
+      If Not MenuBarItem Is Nothing Then MenuBarItem.Widget.MouseLeave Nothing
+      W.Root.Widget.MouseUp 0, 0, -1, -1
+      W.Root.Refresh
+    Case vbKeyDown:
+      If Not MenuBarItem Is Nothing Then
+        MenuBarItem.Widget.MouseLeave Nothing
+        MenuBarItem.ShowPopUp
+        MenuBarItem.Widget.Refresh
+      End If
+    Case vbKeyLeft:  CurPopPup_MenuBarEntryShift True
+    Case vbKeyRight: CurPopPup_MenuBarEntryShift False
+  End Select
+End Sub
+
 Private Sub W_Paint(CC As cCairoContext, ByVal xAbs As Single, ByVal yAbs As Single, ByVal dx_Aligned As Single, ByVal dy_Aligned As Single, UserObj As Object)
   dx = dx_Aligned
   dy = dy_Aligned
@@ -130,8 +188,8 @@ End Sub
 Private Sub Draw(CC As cCairoContext)
 Dim Pat As cCairoPattern
   Set Pat = Cairo.CreateLinearPattern(0, 0, 0, dy)
-      Pat.AddColorStop 0, vbWhite, , 0.97
-      Pat.AddColorStop 1, vbWhite, , 0.89
+      Pat.AddColorStop 0, W.BackColor, , 1.11
+      Pat.AddColorStop 1, W.BackColor, , 0.93
   CC.Paint , Pat
   CC.DrawLine 0, dy - 1, dx, dy - 1, True, 1, vbBlack, 0.3
 End Sub
