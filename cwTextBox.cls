@@ -921,7 +921,7 @@ Static LastTextHeight&
   End If
   
   If mBorder Then
-    CC.SetLineWidth IIf(W.Focused, 2.3, 1), True
+    CC.SetLineWidth 1, True
     Cairo.Theme.DrawTo CC, W, thmTypeBorder, 0, 0, 0, dx, dy
   End If
   InsideDraw = False
