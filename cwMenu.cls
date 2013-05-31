@@ -299,7 +299,9 @@ Private Sub PopUp_CheckForAdditionalCloseConditions()
   If mInitiatorWidget.object Is Nothing Then Exit Sub
   If TypeOf mInitiatorWidget.object Is cwMenu Then Exit Sub
   If mInitiatorWidget.Root Is Nothing Then Exit Sub
-  If Not mActiveRootWidget Is mInitiatorWidget.Root.ActiveWidget Then DestroyPopup
+  If Not mActiveRootWidget Is mInitiatorWidget.Root.ActiveWidget Then
+    DestroyPopup: Exit Sub
+  end if
   If mInitiatorWidget.Root.WidgetForm Is Nothing Then Exit Sub
   If mInitiatorWidget.Root.WidgetForm.Parent Is Nothing Then
     If mInitiatorWidget.Root.WidgetForm.WindowState = vbMinimized Then DestroyPopup
