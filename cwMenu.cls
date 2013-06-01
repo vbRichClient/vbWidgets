@@ -29,6 +29,9 @@ Private WithEvents PopUp As cfPopUp 'this PopupForm-HelperClass is hosted here i
 Attribute PopUp.VB_VarHelpID = -1
 Private WithEvents mInitiatorWidget As cWidgetBase
 Attribute mInitiatorWidget.VB_VarHelpID = -1
+Private WithEvents SC As cSubClass
+Attribute SC.VB_VarHelpID = -1
+ 
 Private mSubMenu As cwMenu, mActiveRootWidget As Object, mActiveMenuItem As cwMenuItem
 Private mMouseX As Single, mMouseY As Single
 Private mDataSource As cMenuItem, mRowHeight As Double, mMenuWidth As Double, mMenuHeight As Double
@@ -129,8 +132,10 @@ Dim MenuItem As cwMenuItem, PopupPosX As Single, PopupPosY As Single, MousePosX 
   
   If Not TypeOf mInitiatorWidget.object Is cwMenu Then
     mInitiatorWidget.Root.BlockKeyEvents True, PopUp.Form
+    Set SC = New_c.SubClass
+    SC.Hook mInitiatorWidget.Root.DialogFormHwnd
   End If
-
+ 
   PopUp.Show
   If Widgets.Count Then Widgets(1).Widget.SetFocus
 End Sub
@@ -207,7 +212,14 @@ Dim MItem As cMenuItem
   RaiseEvent Click(CurMenuItemPath)
   W.RaiseBubblingEvent Me, "Click", CurMenuItemPath
 End Sub
- 
+
+Private Sub SC_WindowProc(Result As Long, ByVal Msg As Long, ByVal wParam As Long, ByVal lParam As Long)
+  Select Case Msg 'check only for NonClient - WM_NCLBUTTONDOWN,WM_NCRBUTTONDOWN,WM_NCMBUTTONDOWN
+    Case &HA1, &HA4, &HA7: DestroyPopup
+  End Select
+  Result = SC.CallWindowProc(Msg, wParam, lParam)
+End Sub
+
 Public Sub DestroyPopup()
 Dim M As cwMenu, WasRootMenu As Boolean
   If RootMenu Is Me Then WasRootMenu = True
@@ -299,7 +311,11 @@ Private Sub PopUp_CheckForAdditionalCloseConditions()
   If mInitiatorWidget.object Is Nothing Then Exit Sub
   If TypeOf mInitiatorWidget.object Is cwMenu Then Exit Sub
   If mInitiatorWidget.Root Is Nothing Then Exit Sub
-  If Not mActiveRootWidget Is mInitiatorWidget.Root.ActiveWidget Then DestroyPopup
+  If Not mActiveRootWidget Is Nothing And _
+     Not mActiveRootWidget Is mInitiatorWidget.Root.ActiveWidget Then
+     DestroyPopup
+     Exit Sub
+  End If
   If mInitiatorWidget.Root.WidgetForm Is Nothing Then Exit Sub
   If mInitiatorWidget.Root.WidgetForm.Parent Is Nothing Then
     If mInitiatorWidget.Root.WidgetForm.WindowState = vbMinimized Then DestroyPopup

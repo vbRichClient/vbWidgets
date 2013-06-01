@@ -44,12 +44,12 @@ Public Sub ShowPopUp()
 Dim MenuBar As cwMenuBar
   If Not W.Enabled Then Exit Sub
   Set MenuBar = W.Parent.object
-  If Not MenuBar.CurPopPup Is Nothing Then
-    If Not MenuBar.CurPopPup.DataSource Is mDataSource Then MenuBar.CurPopPup.DestroyPopup
+  If Not MenuBar.CurPopUp Is Nothing Then
+    If Not MenuBar.CurPopUp.DataSource Is mDataSource Then MenuBar.CurPopUp.DestroyPopup
   End If
-  Set MenuBar.CurPopPup = New cwMenu
-  MenuBar.CurPopPup.Widget.FontSize = W.FontSize
-      MenuBar.CurPopPup.InitAndShow W, mDataSource, PopupBehaviourDropDownLeftAligned
+  Set MenuBar.CurPopUp = New cwMenu
+  MenuBar.CurPopUp.Widget.FontSize = W.FontSize
+      MenuBar.CurPopUp.InitAndShow W, mDataSource, PopupBehaviourDropDownLeftAligned
 End Sub
  
 Private Sub W_MouseDown(Button As Integer, Shift As Integer, ByVal x As Single, ByVal y As Single)
@@ -70,12 +70,12 @@ Private Function IsOwnPopupVisible() As Boolean
 Dim MenuBar As cwMenuBar
   Set MenuBar = W.Parent.object
   If IsPopupVisible Then
-    If MenuBar.CurPopPup.DataSource Is Nothing Then Exit Function
-    IsOwnPopupVisible = MenuBar.CurPopPup.DataSource Is mDataSource
+    If MenuBar.CurPopUp.DataSource Is Nothing Then Exit Function
+    IsOwnPopupVisible = MenuBar.CurPopUp.DataSource Is mDataSource
   End If
 End Function
 Private Function IsPopupVisible() As Boolean
-  IsPopupVisible = Not W.Parent.object.CurPopPup Is Nothing
+  IsPopupVisible = Not W.Parent.object.CurPopUp Is Nothing
 End Function
 
 Private Sub W_MouseLeave(ByVal MouseEnterWidget As vbRichClient5.cWidgetBase)
