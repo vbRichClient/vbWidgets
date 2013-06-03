@@ -925,8 +925,8 @@ Static LastTextHeight&
     j = j + 1
   Next i
   
-  If Len(mText) = 0 Then        'Shows the CueBanner Text
-    CC.SelectFont W.FontName, W.FontSize, W.DisabledColor, , True
+ If Len(mText) = 0 And Len(mCueBannerText) > 0 Then		'Shows the CueBanner Text
+	CC.SelectFont W.FontName, W.FontSize, W.ShadeColor(W.DisabledColor, IIf(W.Focused, 1.2, 1)), , True
     CC.TextOut x1 + AlgnOffs, y1, mCueBannerText
   End If
   
