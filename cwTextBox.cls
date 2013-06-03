@@ -23,7 +23,7 @@ Event KeyUp(KeyCode As Integer, Shift As Integer)
 Event Validate(Cancel As Boolean)
  
 Private dx As Single, dy As Single, Alpha As Single, Zoom As Single, dxx As Single, dyy As Single
-Private mText$, mPassWordChar$, mMultiLine As Boolean, mMaxRowWidth As Single, mVisibleRows&
+Private mText$, mPassWordChar$, mMultiLine As Boolean, mMaxRowWidth As Single, mVisibleRows&, mCueBannerText As String
 Private RowsCharOffset() As Long, RowsCharCount() As Long, mRowCount As Long
 Private mSelStart&, mSelLength&, SelBegin&
 Private CaretPos&, CurRow&, CurPos&, CaretInvertCounter&
@@ -32,6 +32,7 @@ Private mBorder As Boolean, mScrollBars As ScrollBarConstants
 Private mRowHeight&, mLastTextHeight As Long
 Private mInnerSpace&, mAlignment As AlignmentConstants, mVCenter As Boolean
 Private mScrollerSize!, VSValue&, VSLargeChange&, VSMax&
+Private mLocked As Boolean
 
 Private WithEvents T As cTimer, WithEvents tCaret As cTimer
 Attribute T.VB_VarHelpID = -1
@@ -81,6 +82,22 @@ Public Property Let Text(ByVal NewValue$)
   CalcRows
   W.Refresh
   RaiseEvent Change
+End Property
+
+Public Property Get CueBannerText$()
+  CueBannerText = mCueBannerText
+End Property
+Public Property Let CueBannerText(ByVal NewValue$)
+  If NewValue = mText Then Exit Property
+  mCueBannerText = NewValue
+  W.Refresh
+End Property
+
+Public Property Get Locked() As Boolean
+  Locked = mLocked
+End Property
+Public Property Let Locked(ByVal NewValue As Boolean)
+  mLocked = NewValue
 End Property
 
 Public Property Get UndoDepth() As Byte
@@ -449,6 +466,8 @@ Private Sub W_KeyUp(KeyCode As Integer, Shift As Integer)
 End Sub
 
 Private Sub InsertText(NewText$)
+  If mLocked Then Exit Sub
+  
   mText = Left$(mText, mSelStart) & NewText & Mid$(mText, mSelStart + mSelLength + 1)
   CaretPos = mSelStart + Len(NewText)
   CalcRows
@@ -905,6 +924,11 @@ Static LastTextHeight&
     
     j = j + 1
   Next i
+  
+ If Len(mText) = 0 And Len(mCueBannerText) > 0 Then		'Shows the CueBanner Text
+	CC.SelectFont W.FontName, W.FontSize, W.ShadeColor(W.DisabledColor, IIf(W.Focused, 1.2, 1)), , True
+    CC.TextOut x1 + AlgnOffs, y1, mCueBannerText
+  End If
   
   If mBorder Then
     CC.SetLineWidth 1, True
