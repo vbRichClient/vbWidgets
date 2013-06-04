@@ -84,7 +84,7 @@ Dim MenuBarItem As cwMenuBarItem, Index As Long, i As Long
     End If
     Index = Index + 1
   Next MenuBarItem
-  
+
   If Index = Widgets.Count Then Exit Sub 'not found
   
   For i = 1 To Widgets.Count 'let's try to shift the entry (trying Widgets.Count times)
