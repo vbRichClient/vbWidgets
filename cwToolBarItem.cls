@@ -100,11 +100,11 @@ Const ArrowSize& = 8
     CC.SetLineWidth IIf(BDown Or Checked, 1.1, 1)
     
     If BDown Or Checked Then
-      If MOverArrow Then CC.ClipExplicit dx - 16, 0, dx, dy
+      If MOverArrow And Not Checked Then CC.ClipExplicit dx - 16, 0, dx, dy
         CC.RoundedRect 0, 0, dx, dy, 2.2, True
         CC.SetSourceColor W.Parent.BackColor, Alpha, 0.89
         CC.Fill
-      If MOverArrow Then CC.ResetClip
+      If MOverArrow And Not Checked Then CC.ResetClip
     End If
     
     If W.MouseOver Or Checked Then
