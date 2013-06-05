@@ -130,14 +130,16 @@ Dim MenuItem As cwMenuItem, PopupPosX As Single, PopupPosY As Single, MousePosX 
   Set PopUp = New cfPopUp
   PopUp.Load Me, PopupPosX, PopupPosY, mMenuWidth, mMenuHeight, mInitiatorWidget.Zoom
   
+  PopUp.Show
+  
   If Not TypeOf mInitiatorWidget.object Is cwMenu Then
     mInitiatorWidget.Root.BlockKeyEvents True, PopUp.Form
     Set SC = New_c.SubClass
     SC.Hook mInitiatorWidget.Root.DialogFormHwnd
+  Else 'a SubMenu
+    If Widgets.Count Then Widgets(1).Widget.SetFocus
   End If
  
-  PopUp.Show
-  If Widgets.Count Then Widgets(1).Widget.SetFocus
 End Sub
 
 Private Sub ShowSubMenu(ByVal MenuItem As cwMenuItem)
@@ -407,12 +409,12 @@ Public Sub KeyDown(KeyCode As Integer, Shift As Integer)
       If Not MItem Is Nothing Then
         If MItem.Widget.Enabled And Not MItem.SubMenuDS Is Nothing Then
           ShowSubMenu MItem
-        Else
-          If RootMenu Is Me Then
-            RaiseEvent MenuBarEntryShift(False)
-            W.RaiseBubblingEvent Me, "MenuBarEntryShift", False
-          End If
+          Exit Sub
         End If
+      End If
+      If RootMenu Is Me Then
+        RaiseEvent MenuBarEntryShift(False)
+        W.RaiseBubblingEvent Me, "MenuBarEntryShift", False
       End If
     Case vbKeyUp
       For i = MItemIdx - 1 To 1 Step -1
