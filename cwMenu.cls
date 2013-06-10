@@ -506,12 +506,24 @@ End Sub
 
 Private Sub UnCheckAllMenuOptions(MItem As cwMenuItem)
 'Unchecks all the menu options items that are in the same level of hierarchy of MItem
-Dim V, MItemX As cwMenuItem
+Dim MItemX As cwMenuItem, i As Long, MIdx As Long
   If MItem.Widget.Parent Is Nothing Then Exit Sub
   If MItem.Widget.Parent.ChildCount = 0 Then Exit Sub
-  For Each V In MItem.Widget.Parent.Widgets
-    If TypeOf V Is cwMenuItem Then
-      Set MItemX = V
+  
+  MIdx = MItem.Widget.Parent.Widgets.GetOneBasedChildIndexByKey(MItem.Widget.Key)
+  For i = MIdx - 1 To 1 Step -1 'first we go upwards
+    If TypeOf MItem.Widget.Parent.Widgets(i) Is cwMenuItem Then
+      Set MItemX = MItem.Widget.Parent.Widgets(i)
+      If MItemX.Caption = "-" Then Exit For
+      If MItemX.IsOption Then
+        mDataSource.SubItemByKey(MItemX.Widget.Key).Checked = False
+      End If
+    End If
+  Next
+  For i = MIdx To MItem.Widget.Parent.Widgets.Count  'now we loop downwards
+    If TypeOf MItem.Widget.Parent.Widgets(i) Is cwMenuItem Then
+      Set MItemX = MItem.Widget.Parent.Widgets(i)
+      If MItemX.Caption = "-" Then Exit For
       If MItemX.IsOption Then
         mDataSource.SubItemByKey(MItemX.Widget.Key).Checked = False
       End If

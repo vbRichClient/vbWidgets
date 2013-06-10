@@ -181,7 +181,7 @@ Dim x As Double, y As Double
     y = (W.Height - OptionSize) / 2 + 2
     x = y + 3.3
     CC.SetLineCap Cairo_LINE_CAP_ROUND
-      CC.SetSourceColor W.FocusColor, 0.85, 0.27
+ 
       OptionSize = OptionSize - 8
       x = x + 2 + OptionSize / 2
       y = y + 2 + OptionSize / 2
@@ -191,11 +191,11 @@ Dim x As Double, y As Double
   
     Set Pat = Cairo.CreateRadialPattern(x, y, OptionSize / 2, x + OptionSize / 6, y - OptionSize / 4, 0)
       Pat.AddColorStop 1, W.FocusColor, 0#
-      Pat.AddColorStop 0, W.FocusColor, 0.85, 0.27
+      Pat.AddColorStop 0, W.FocusColor, 0.85, 0.22
     CC.Fill True, Pat
       
     CC.SetLineWidth 1
-      CC.SetSourceColor W.FocusColor, 0.35
+      CC.SetSourceColor W.FocusColor, 0.35, 0.4
     CC.Stroke
 End Sub
 
