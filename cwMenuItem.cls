@@ -16,7 +16,8 @@ Option Explicit
 Event ShowSubMenu(Sender As cwMenuItem)
 
 Private dx As Single, dy As Single, Alpha As Single
-Private mCaption As String, mSubMenuDS As cMenuItem, mIsCheckable, mChecked As Boolean
+Private mCaption As String, mSubMenuDS As cMenuItem
+Private mIsCheckable As Boolean, mChecked As Boolean, mIsOption As Boolean
 Private WithEvents tmrSubMenuHover As cTimer
 Attribute tmrSubMenuHover.VB_VarHelpID = -1
 
@@ -67,6 +68,14 @@ Public Property Get IsCheckable() As Boolean
 End Property
 Friend Property Let IsCheckable(ByVal NewValue As Boolean)
   mIsCheckable = NewValue
+  If Not NewValue Then mIsOption = False    'IsOption works only if IsCheckable
+End Property
+ 
+Public Property Get IsOption() As Boolean
+  IsOption = mIsOption
+End Property
+Friend Property Let IsOption(ByVal NewValue As Boolean)
+  mIsOption = NewValue
 End Property
  
 Private Sub W_LostFocus()
@@ -128,7 +137,13 @@ Const IcoOffsX& = 30, IcoSize& = 16, ArrowSize& = 9
     If mIsCheckable Then
       W.Alpha = 0.3
       Cairo.Theme.DrawTo CC, W, thmTypeListSelection, 0, 2, 0, dy + 2, dy, 3
-      If mChecked Then DrawCheckMark CC, IcoSize + 3
+      If mChecked Then
+        If mIsOption Then
+          DrawOptionMark CC, IcoSize + 3
+        Else
+          DrawCheckMark CC, IcoSize + 3
+        End If
+      End If
     End If
     
     W.Alpha = Alpha
@@ -160,3 +175,29 @@ Dim x As Double, y As Double
       CC.SetSourceColor W.FocusColor, 0.35
     CC.Stroke
 End Sub
+
+Private Sub DrawOptionMark(CC As cCairoContext, ByVal OptionSize As Long)
+Dim x As Double, y As Double
+    y = (W.Height - OptionSize) / 2 + 2
+    x = y + 3.3
+    CC.SetLineCap Cairo_LINE_CAP_ROUND
+      CC.SetSourceColor W.FocusColor, 0.85, 0.27
+      OptionSize = OptionSize - 8
+      x = x + 2 + OptionSize / 2
+      y = y + 2 + OptionSize / 2
+     
+    Dim Pat As cCairoPattern
+    CC.ARC x, y, OptionSize / 2
+  
+    Set Pat = Cairo.CreateRadialPattern(x, y, OptionSize / 2, x + OptionSize / 6, y - OptionSize / 4, 0)
+      Pat.AddColorStop 1, W.FocusColor, 0#
+      Pat.AddColorStop 0, W.FocusColor, 0.85, 0.27
+    CC.Fill True, Pat
+      
+    CC.SetLineWidth 1
+      CC.SetSourceColor W.FocusColor, 0.35
+    CC.Stroke
+End Sub
+
+
+
