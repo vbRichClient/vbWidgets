@@ -25,6 +25,13 @@ Event Click(ByVal CurMenuItemPath As String)
 Event MenuBarEntryShift(ByVal ShiftLeft As Boolean)
 Event MenuDestroyed(ByVal DestroyedByKeyPress As Boolean)
 
+'To have a option-like MenuItem, you must set the IsCheckable property to True and set the IconKey property
+'to this value:
+Private Const OptionMenuItemIconKey = "OptMenuItem"
+'No real IconResource is needed at all in the global Cairo.ImageList - the IconImageKey is just used as
+'the "magic Indicator" for the OptionBox-Rendering-Workaround.
+'This is done because the cMenuItem class have not a IsOption property in RC5's vbRichClient.dll
+
 Private WithEvents PopUp As cfPopUp 'this PopupForm-HelperClass is hosted here in the vbWidgets.dll-Project
 Attribute PopUp.VB_VarHelpID = -1
 Private WithEvents mInitiatorWidget As cWidgetBase
@@ -192,6 +199,9 @@ Dim i As Long, dx As Double, dy As Double, Caption As String
         MenuItem.Widget.BackColor = W.BackColor
         MenuItem.Caption = Caption
         MenuItem.IsCheckable = DSItem.IsCheckable
+        MenuItem.IsOption = DSItem.IconKey = OptionMenuItemIconKey  'Here is the workaround to have
+                                                                    'option-like cwMenuItems from cMenuItems
+                                                                    'with "magic" iconkey indicator
         If DSItem.IsCheckable Then MenuItem.Checked = DSItem.Checked
         If Caption = "-" Then MenuItem.Widget.Enabled = False
         If DSItem.SubItemCount Then Set MenuItem.SubMenuDS = DSItem
@@ -428,7 +438,11 @@ Public Sub KeyDown(KeyCode As Integer, Shift As Integer)
       
       If Not MItem Is Nothing Then
         If MItem.Widget.Enabled Then
-          If Not RootMenu Is Nothing Then mDestroyedByKeyPress = True: RootMenu.RaiseClick MenuItemKeyPath
+          If Not RootMenu Is Nothing Then
+            mDestroyedByKeyPress = True
+            If MItem.IsOption Then UnCheckAllMenuOptions MItem
+            RootMenu.RaiseClick MenuItemKeyPath
+          End If
         End If
       End If
       If Not RootMenu Is Nothing Then mDestroyedByKeyPress = True: RootMenu.DestroyPopup
@@ -460,7 +474,10 @@ Public Sub W_MouseUp(Button As Integer, Shift As Integer, ByVal x As Single, ByV
       If Not mActiveMenuItem.SubMenuDS Is Nothing Then
         ShowSubMenu mActiveMenuItem
       ElseIf mActiveMenuItem.Widget.Enabled Then
-        If Not RootMenu Is Nothing Then RootMenu.RaiseClick MenuItemKeyPath
+        If Not RootMenu Is Nothing Then
+          If mActiveMenuItem.IsOption Then UnCheckAllMenuOptions mActiveMenuItem    'First we clear all the options
+          RootMenu.RaiseClick MenuItemKeyPath                                       'And in here we set the current one
+        End If
       End If
     End If
   End If
@@ -485,4 +502,19 @@ Private Sub W_Paint(CC As cCairoContext, ByVal xAbs As Single, ByVal yAbs As Sin
   W.Alpha = 0.7
   Cairo.Theme.DrawTo CC, W, thmTypeBorder, 0, 0, 0, dx_Aligned, dy_Aligned
   W.Alpha = 1
+End Sub
+
+Private Sub UnCheckAllMenuOptions(MItem As cwMenuItem)
+'Unchecks all the menu options items that are in the same level of hierarchy of MItem
+Dim V, MItemX As cwMenuItem
+  If MItem.Widget.Parent Is Nothing Then Exit Sub
+  If MItem.Widget.Parent.ChildCount = 0 Then Exit Sub
+  For Each V In MItem.Widget.Parent.Widgets
+    If TypeOf V Is cwMenuItem Then
+      Set MItemX = V
+      If MItemX.IsOption Then
+        mDataSource.SubItemByKey(MItemX.Widget.Key).Checked = False
+      End If
+    End If
+  Next
 End Sub
