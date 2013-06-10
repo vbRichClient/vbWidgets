@@ -88,7 +88,7 @@ Public Property Get CueBannerText$()
   CueBannerText = mCueBannerText
 End Property
 Public Property Let CueBannerText(ByVal NewValue$)
-  If NewValue = mText Then Exit Property
+  If NewValue = mCueBannerText Then Exit Property
   mCueBannerText = NewValue
   W.Refresh
 End Property
