@@ -55,8 +55,8 @@ Dim i As Long, y As Single, yy As Single, WEntry As cWidgetBase
     For i = 0 To mCurrentEntryIndex
       'the cwRibbon-Entry
       Set WEntry = Widgets(2 * i + 1).Widget
-'      WEntry.Move -1, Y, W.Width, mAccEntryHeight
-'      Y = Y + mAccEntryHeight
+'      WEntry.Move -1, y, W.Width, mAccEntryHeight
+'      y = y + mAccEntryHeight
       
       'the associated Widget
       Set WEntry = Widgets(2 * i + 2).Widget
@@ -65,7 +65,7 @@ Dim i As Long, y As Single, yy As Single, WEntry As cWidgetBase
   
 '    yy = W.ScaleHeight - (Widgets.Count \ 2 - mCurrentEntryIndex - 1) * mAccEntryHeight
     If Not WEntry Is Nothing Then
-'      WEntry.Move -1, Y - 1, W.Width, yy - Y + 2
+'      WEntry.Move -1, y - 1, W.Width, yy - y + 2
       WEntry.Visible = True
       WEntry.SetFocus
     End If
@@ -74,8 +74,8 @@ Dim i As Long, y As Single, yy As Single, WEntry As cWidgetBase
     For i = mCurrentEntryIndex + 1 To Widgets.Count \ 2 - 1
       'the cwAccordeon-Entry
       Set WEntry = Widgets(2 * i + 1).Widget
-'      WEntry.Move 0, Y + 1, W.Width, mAccEntryHeight
-'      Y = Y + mAccEntryHeight
+'      WEntry.Move 0, y + 1, W.Width, mAccEntryHeight
+'      y = y + mAccEntryHeight
       
       'the associated Widget
       Set WEntry = Widgets(2 * i + 2).Widget
