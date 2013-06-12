@@ -186,7 +186,7 @@ Private Sub VList_OwnerDrawHeader(CC As vbRichClient5.cCairoContext, ByVal dx As
   Cairo.Theme.DrawTo CC, W, thmTypeShine, 0, 0, -1, dx, Int((dy + 2) \ 2) - 1, 0, thmDirectionDown
   
   CC.DrawLine 0, dy, dx, dy, True, 1, W.BorderColor, 0.3
-  
+  W.SelectFontSettingsInto CC
   CC.DrawText 40, 0, dx - 40, dy, mCaption, True, vbLeftJustify, 2, True
 End Sub
 
@@ -252,6 +252,7 @@ Private Sub ExpandOrCollapse(ByVal Index As Long)
 Dim Key, Value
   If Not mDS.TreeElementInfoByVisibleIndex(Index, Key, Value) Then Exit Sub
   If Not TypeOf Value Is cCollection Then Exit Sub
+  If Value.Count = 0 Then Exit Sub
   If mDS.TreeNodeIsExpanded(Value) Then mDS.TreeNodeCollapse Value Else mDS.TreeNodeExpand Value
 End Sub
 
