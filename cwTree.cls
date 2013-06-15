@@ -83,7 +83,7 @@ Dim Btn As cwButton
   If mCaption = NewValue Then Exit Property
   mCaption = NewValue
   If Len(mCaption) Then
-    VList.HeaderHeight = 23
+    If VList.HeaderHeight = 0 Then VList.HeaderHeight = 23
     If Not Widgets.Exists("btnExpand") Then
       MakeCaptionButton "btnExpand", 3, "6", "Expand all", vbGreen
       MakeCaptionButton "btnCollapse", 20, "5", "Collapse all", vbCyan
@@ -98,7 +98,7 @@ End Property
 
 Private Sub MakeCaptionButton(Key As String, ByVal xOffs As Long, Caption As String, ToolTip As String, BackColor As Long)
 Dim Btn As cwButton
-  Set Btn = Widgets.Add(New cwButton, Key, xOffs, 2, 17, 17)
+  Set Btn = Widgets.Add(New cwButton, Key, xOffs, (VList.HeaderHeight - 17) \ 2, 17, 17)
       Btn.Widget.CanGetFocus = False
       Btn.Widget.ToolTip = ToolTip
       Btn.Widget.BackColor = BackColor
@@ -187,7 +187,7 @@ Private Sub VList_OwnerDrawHeader(CC As vbRichClient5.cCairoContext, ByVal dx As
   
   CC.DrawLine 0, dy, dx, dy, True, 1, W.BorderColor, 0.3
   W.SelectFontSettingsInto CC
-  CC.DrawText 40, 0, dx - 40, dy, mCaption, True, vbLeftJustify, 2, True
+  CC.DrawText 40, 1, dx - 40, dy, mCaption, True, vbLeftJustify, 2, True
 End Sub
 
 Private Sub VList_OwnerDrawItem(ByVal Index As Long, CC As cCairoContext, ByVal dx As Single, ByVal dy As Single, ByVal Alpha As Single)
@@ -252,7 +252,7 @@ Private Sub ExpandOrCollapse(ByVal Index As Long)
 Dim Key, Value
   If Not mDS.TreeElementInfoByVisibleIndex(Index, Key, Value) Then Exit Sub
   If Not TypeOf Value Is cCollection Then Exit Sub
-  If Value.Count = 0 Then Exit Sub
+'  If Value.Count = 0 Then Exit Sub
   If mDS.TreeNodeIsExpanded(Value) Then mDS.TreeNodeCollapse Value Else mDS.TreeNodeExpand Value
 End Sub
 

@@ -430,10 +430,10 @@ Dim CtrlDown As Boolean
     Case vbKeyHome: MoveCursor -CaretPos
     Case vbKeyEnd: MoveCursor Len(mText) - CaretPos
     
-    Case vbKeyInsert: If CtrlDown Then CopyText Else If ShiftDown Then InsertText W.Root.Cairo.Clipboard.GetText
+    Case vbKeyInsert: If CtrlDown Then CopyText Else If ShiftDown Then InsertText Cairo.Clipboard.GetText
     Case vbKeyX: If CtrlDown And mSelLength > 0 Then CopyText: DeleteText
     Case vbKeyC: If CtrlDown Then CopyText
-    Case vbKeyV: If CtrlDown Then InsertText W.Root.Cairo.Clipboard.GetText
+    Case vbKeyV: If CtrlDown Then InsertText Cairo.Clipboard.GetText
     Case vbKeyA
       If CtrlDown Then
         mSelStart = 0
@@ -479,8 +479,8 @@ End Sub
 Private Sub CopyText()
   If mSelLength = 0 Or Len(mPassWordChar) > 0 Then Exit Sub
 
-  W.Root.Cairo.Clipboard.Clear
-  W.Root.Cairo.Clipboard.SetText SelText, vbCFText
+  Cairo.Clipboard.Clear
+  Cairo.Clipboard.SetText SelText, vbCFText
 End Sub
 
 Private Sub DeleteText(Optional ByVal ToTheLeft As Boolean)
@@ -925,8 +925,8 @@ Static LastTextHeight&
     j = j + 1
   Next i
   
- If Len(mText) = 0 And Len(mCueBannerText) > 0 Then		'Shows the CueBanner Text
-	CC.SelectFont W.FontName, W.FontSize, W.ShadeColor(W.DisabledColor, IIf(W.Focused, 1.2, 1)), , True
+  If Len(mText) = 0 And Len(mCueBannerText) > 0 Then 'Shows the CueBanner Text
+    CC.SelectFont W.FontName, W.FontSize, W.ShadeColor(W.DisabledColor, IIf(W.Focused, 1.2, 1)), , True
     CC.TextOut x1 + AlgnOffs, y1, mCueBannerText
   End If
   

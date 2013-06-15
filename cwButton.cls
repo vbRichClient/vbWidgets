@@ -48,12 +48,6 @@ Public ImageSize As Long, DownStateCaptionOffset As Long
 
 Private WithEvents W As cWidgetBase
 Attribute W.VB_VarHelpID = -1
-Public Property Get Widget() As cWidgetBase
-  Set Widget = W
-End Property
-Public Property Get Widgets() As cWidgets
-  Set Widgets = W.Widgets
-End Property
 
 Private Sub Class_Initialize()
   Set W = Cairo.WidgetBase
@@ -63,6 +57,12 @@ Private Sub Class_Initialize()
   mValue = 0
   DownStateCaptionOffset = 1
 End Sub
+Public Property Get Widget() As cWidgetBase
+  Set Widget = W
+End Property
+Public Property Get Widgets() As cWidgets
+  Set Widgets = W.Widgets
+End Property
 
 Public Property Get HAlignment() As AlignmentConstants
   HAlignment = mHAlignment
@@ -411,7 +411,7 @@ Dim TOffsX As Single, TRows As Long, Tdx As Single, Tdy As Single
   TOffsX = 5
   
   If Len(W.ImageKey) Then 'render the Image
-    ImgSize = IIf(ImageSize, ImageSize, dy - TOffsX)
+    ImgSize = IIf(ImageSize, ImageSize, dy - TOffsX - 2)
     ImgOffsY = Int((dy - ImgSize) / 2)
     Select Case W.ImageKeyRenderBehaviour
       
