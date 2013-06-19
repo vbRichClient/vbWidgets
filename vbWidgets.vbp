@@ -33,6 +33,7 @@ Class=cwMenuItem; cwMenuItem.cls
 Class=cwMenuBarItem; cwMenuBarItem.cls
 Class=cwMenuBar; cwMenuBar.cls
 Class=cwToolBarItem; cwToolBarItem.cls
+Class=cwDropDownList; cwDropDownList.cls
 Startup="Sub Main"
 HelpFile=""
 Title="vbWidgets"
