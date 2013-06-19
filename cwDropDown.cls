@@ -20,7 +20,7 @@ Event PopupDestroyed()
 
 Private WithEvents PopUp As cfPopUp 'this PopupForm-HelperClass is hosted here in the vbWidgets.dll-Project
 Attribute PopUp.VB_VarHelpID = -1
-Private WithEvents Btn As cwButton 'we inherit visually from a preimplemented Widget (in this case a cwButton in CheckButton-Mode)
+Public WithEvents Btn As cwButton 'we inherit visually from a preimplemented Widget (in this case a cwButton in CheckButton-Mode)
 Attribute Btn.VB_VarHelpID = -1
 Private WithEvents W As cWidgetBase
 Attribute W.VB_VarHelpID = -1
@@ -51,6 +51,10 @@ Public Property Get Caption() As String
 End Property
 Public Property Let Caption(ByVal NewValue As String)
   Btn.Caption = NewValue
+End Property
+
+Public Property Get PopupWidget() As Object
+  Set PopupWidget = mPopupWidget
 End Property
 
 Public Property Get Text() As String

@@ -61,7 +61,7 @@ Public Property Let DataField(ByVal NewValue As String)
 End Property
 
 Public Property Get Text() As String
-  Text = DropDown.Caption
+  Text = DropDown.Text
 End Property
 
 Public Property Get ListIndex() As Long
@@ -122,6 +122,7 @@ Private Sub VList_OwnerDrawItem(ByVal Index As Long, CC As vbRichClient5.cCairoC
 End Sub
  
 Private Sub W_KeyDown(KeyCode As Integer, Shift As Integer)
+  If DropDown.Btn.Value Then Exit Sub 'early exit in case the DropDown is shown (to avoid double-KeyHandling here)
   Select Case KeyCode
     Case vbKeyLeft, vbKeyUp:    If ListIndex > 0 Then ListIndex = ListIndex - 1
     Case vbKeyRight, vbKeyDown: If ListIndex < ListCount - 1 Then ListIndex = ListIndex + 1
