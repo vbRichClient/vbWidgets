@@ -18,6 +18,7 @@ Event Validate(ByVal NewRowIdx As Long, ByVal NewColIdx As Long, ByVal OldRowIdx
 Event AddNewAttempt(Cancel As Boolean)
 Event DeleteAttempt(Cancel As Boolean)
 Event HeaderClick(ByVal ColIdx As Long, State As ColumnSortState)
+Event DataSourcePositionChanged()
 
 Private WithEvents VList As cwVList 'we inherit visually from a preimplemented Widget
 Attribute VList.VB_VarHelpID = -1
@@ -171,17 +172,23 @@ End Sub
 Private Sub mDS_Move(ByVal NewRowIdxZeroBased As Long)
   If VList.ListIndex = NewRowIdxZeroBased Then Exit Sub
   VList.ListIndex = NewRowIdxZeroBased
+  RaiseEvent DataSourcePositionChanged
+  W.RaiseBubblingEvent Me, "DataSourcePositionChanged"
+End Sub
+
+Private Sub mDS_NewDataContentArrived()
+  VList.ListCount = mDS.RecordCount
 End Sub
 
 Private Sub VList_Click()
 Dim DoRaise As Boolean
   If Not mDS Is Nothing Then
     If mDS.RecordCount > 0 Then
-      If VList.ListIndex = -1 And mDS.AbsolutePosition <> -1 Then
+      If VList.ListIndex = -1 And mDS.AbsolutePosition > 0 Then
         mDS.MoveFirst
-        mDS.MovePrevious
+        mDS.MovePrevious 'ensure BOF-Position
         DoRaise = True
-      ElseIf mDS.AbsolutePosition <> VList.ListIndex + 1 Then
+      ElseIf VList.ListIndex <> -1 And mDS.AbsolutePosition <> VList.ListIndex + 1 Then
         mDS.AbsolutePosition = VList.ListIndex + 1
         DoRaise = True
       End If
@@ -190,6 +197,8 @@ Dim DoRaise As Boolean
   If DoRaise Then
     RaiseEvent Click
     W.RaiseBubblingEvent Me, "Click"
+    RaiseEvent DataSourcePositionChanged
+    W.RaiseBubblingEvent Me, "DataSourcePositionChanged"
   End If
 End Sub
 
@@ -212,14 +221,13 @@ Dim i As Long, StartIdx As Long, xx As Double, ww As Long, State As enmThemeDraw
   xx = VList.RowSelectorWidth
   For i = StartIdx To StartIdx + VisibleCols - 1
     ww = VList.ColumnWidth(i)
-    
-    Cairo.Theme.DrawTo CC, W, thmTypeSeparatorLine, 0, xx, 0, 1, dy
-
-    CC.DrawText xx, 1, ww, dy, mDS.FieldName(VList.ColMapIndex(i)), True, , 4, True
-    xx = xx + ww
+    If ww > 0 Then
+      If i = StartIdx + VList.VisibleCols - 1 Then ww = dx - xx
+      Cairo.Theme.DrawTo CC, W, thmTypeSeparatorLine, 0, xx, 0, 1, dy
+      CC.DrawText xx, 1, ww, dy, mDS.FieldName(VList.ColMapIndex(i)), True, , 4, True
+      xx = xx + ww
+    End If
   Next i
-  
-'  Cairo.FontOptions = CAIRO_ANTIALIAS_DEFAULT ' CAIRO_ANTIALIAS_GRAY 'CAIRO_ANTIALIAS_NONE
 End Sub
 
 Private Sub VList_OwnerDrawRowSelector(CC As cCairoContext, ByVal dx As Single, ByVal dy As Single, ByVal Alpha As Single)
@@ -234,39 +242,26 @@ Dim i As Long, yy As Double, State As enmThemeDrawingState
 End Sub
 
 Private Sub VList_OwnerDrawItem(ByVal Index As Long, CC As cCairoContext, ByVal dx As Single, ByVal dy As Single, ByVal Alpha As Single)
-Dim i As Long, StartIdx As Long, xx As Double, ww As Long
+Dim i As Long, StartIdx As Long, V, S As String, xx As Double, ww As Long
   If mDS Is Nothing Then Exit Sub
  
   If VList.HScrollBar.Widget.Visible Then StartIdx = VList.HScrollBar.Value
  
   xx = 0
-  Dim V, S$, TW#  ', FH#
-  
-  Dim hDC&, yy& ': If W.hWnd Then hDC = GetDC(W.hWnd): yy = VList.RowHeight * Index
-
-  yy = (dy - CC.GetFontHeight) / 2
-  
   For i = StartIdx To StartIdx + VList.VisibleCols - 1
     ww = VList.ColumnWidth(i)
-    V = mDS.ValueMatrix(Index, VList.ColMapIndex(i))
-    Select Case VarType(V)
-      Case vbByte Or vbArray: S = "<BLOB>"
-      Case Else: S = V
-    End Select
-    
-'    CC.DrawText xx, 0, ww, dy, CStr(V), True, vbCenter, 2, True
-'     TW = cc.GetTextExtentPtr(StrPtr(S), Len(S))
-'     cccc = cccc + 1
-    
-'    CC.ClipExplicit xx + 2, 0, ww - 4, dy
-'     CC.TextOutPtr xx + 2, yy, StrPtr(S), Len(S)
-''      CC.TextOut xx + 2, yy, S
-'    CC.ResetClip
-    CC.DrawText xx, 0, ww, dy, S, True, vbLeftJustify, 2, True
-    
-    xx = xx + ww
+    If ww > 0 Then
+      If i = StartIdx + VList.VisibleCols - 1 Then ww = dx - xx
  
+      V = mDS.ValueMatrix(Index, VList.ColMapIndex(i))
+      Select Case VarType(V)
+        Case vbByte Or vbArray: S = "<BLOB>"
+        Case Else: S = V
+      End Select
+ 
+      CC.DrawText xx, 0, ww, dy, S, True, vbLeftJustify, 2, True
+      xx = xx + ww
+    End If
   Next i
-'  Debug.Print cccc
 End Sub
  

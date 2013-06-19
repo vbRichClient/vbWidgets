@@ -105,9 +105,9 @@ Dim Pat As cCairoPattern, Color As Long, Alpha As Single
             Case thmDirectionLeft:  Set Pat = Cairo.CreateLinearPattern(dx, y, x, y)
           End Select
             If State And thmStatePressed Then
-              Pat.AddColorStop 0, W.SelectionColor, 0.22 * Alpha ', 0.9
-              Pat.AddColorStop 0.15, vbWhite, 0.18 * Alpha
-              Pat.AddColorStop 1, vbWhite, 0.65 * Alpha
+              Pat.AddColorStop 0, W.SelectionColor, 0.16 * Alpha
+              Pat.AddColorStop 0.21, vbWhite, 0.24 * Alpha
+              Pat.AddColorStop 1, vbWhite, 0.62 * Alpha
             Else
               Pat.AddColorStop 0, vbWhite, 0.45 * Alpha
               Pat.AddColorStop 1, vbWhite, 0.35 * Alpha

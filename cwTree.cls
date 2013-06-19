@@ -137,16 +137,24 @@ End Sub
 Private Sub VList_Click()
 Dim DoRaise As Boolean
   If Not mDS Is Nothing Then
-    If mDS.Count > 0 Then
-      If VList.ListIndex = -1 And mDS.AbsolutePosition <> VList.ListIndex Then
-        mDS.MoveFirst
-        mDS.MovePrevious
-        DoRaise = True
-      ElseIf mDS.AbsolutePosition <> VList.ListIndex + 1 Then
-        mDS.AbsolutePosition = VList.ListIndex + 1
-        DoRaise = True
-      End If
+    If VList.ListIndex = -1 And mDS.AbsolutePosition > 0 Then
+      mDS.MoveFirst
+      mDS.MovePrevious 'ensure BOF-Position
+      DoRaise = True
+    ElseIf VList.ListIndex <> -1 And mDS.AbsolutePosition <> VList.ListIndex + 1 Then
+      mDS.AbsolutePosition = VList.ListIndex + 1
+      DoRaise = True
     End If
+'    If mDS.Count > 0 Then
+'      If VList.ListIndex = -1 And mDS.AbsolutePosition <> VList.ListIndex Then
+'        mDS.MoveFirst
+'        mDS.MovePrevious
+'        DoRaise = True
+'      ElseIf mDS.AbsolutePosition <> VList.ListIndex + 1 Then
+'        mDS.AbsolutePosition = VList.ListIndex + 1
+'        DoRaise = True
+'      End If
+'    End If
   End If
   If DoRaise Then
     RaiseEvent Click

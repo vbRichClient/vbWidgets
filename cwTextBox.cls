@@ -467,6 +467,7 @@ End Sub
 
 Private Sub InsertText(NewText$)
   If mLocked Then Exit Sub
+  If Len(NewText) = 0 And mSelLength = 0 Then Exit Sub
   
   mText = Left$(mText, mSelStart) & NewText & Mid$(mText, mSelStart + mSelLength + 1)
   CaretPos = mSelStart + Len(NewText)
@@ -995,7 +996,11 @@ Dim i&, CPos&, CCount&, CrLfOffs&
       Row = i + 1: RowPos = 0: LinearPos = RowPos: Exit Sub
     End If
   Next i
-  If Row = -1 Then Row = mRowCount - 1: RowPos = Abs(RowsCharCount(Row))
+  If Row = -1 Then
+    Row = mRowCount - 1
+    If Row < 0 Then Row = 0
+    RowPos = Abs(RowsCharCount(Row))
+  End If
 End Sub
 
 Private Sub CalcCaretPos()
