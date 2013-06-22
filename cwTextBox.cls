@@ -82,13 +82,14 @@ Public Property Let Text(ByVal NewValue$)
   CalcRows
   W.Refresh
   RaiseEvent Change
+  W.RaiseBubblingEvent Me, "Change"
 End Property
 
 Public Property Get CueBannerText$()
   CueBannerText = mCueBannerText
 End Property
 Public Property Let CueBannerText(ByVal NewValue$)
-  If NewValue = mText Then Exit Property
+  If NewValue = mCueBannerText Then Exit Property
   mCueBannerText = NewValue
   W.Refresh
 End Property
@@ -475,6 +476,7 @@ Private Sub InsertText(NewText$)
   mSelLength = 0: mSelStart = CaretPos
   SelBegin = CaretPos
   RaiseEvent Change
+  W.RaiseBubblingEvent Me, "Change"
 End Sub
 
 Private Sub CopyText()
