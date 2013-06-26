@@ -1,6 +1,6 @@
 Type=OleDll
-Reference=*\G{00020430-0000-0000-C000-000000000046}#2.0#0#..\..\Windows\SysWow64\stdole2.tlb#OLE Automation
-Reference=*\G{C79C91A4-10F5-4F71-A490-3B7915514344}#2.2#0#..\RC5\vbRichClient5.dll#vbRichClient5
+Reference=*\G{00020430-0000-0000-C000-000000000046}#2.0#0#..\..\..\WINDOWS\system32\STDOLE2.TLB#OLE Automation
+Reference=*\G{C79C91A4-10F5-4F71-A490-3B7915514344}#2.2#0#..\..\..\Program Files\Multimedia\Vee-Hive\vbRichClient5.dll#vbRichClient5
 Module=modWidgets; modWidgets.bas
 Class=cwFrame; cwFrame.cls
 Class=cwVScrollBar; cwVScrollBar.cls
@@ -34,6 +34,7 @@ Class=cwMenuBarItem; cwMenuBarItem.cls
 Class=cwMenuBar; cwMenuBar.cls
 Class=cwToolBarItem; cwToolBarItem.cls
 Class=cwDropDownList; cwDropDownList.cls
+Class=cwProgressBar; cwProgressBar.cls
 Startup="Sub Main"
 HelpFile=""
 Title="vbWidgets"
