@@ -63,7 +63,7 @@ Private Sub cTheme_DrawTo(CC As cCairoContext, W As cWidgetBase, _
 Dim i As Long, Offs As Single, Size As Single, Tmp As Single
 Dim Lines As Long, Angle As Long, ZoomFac As Double
 Dim Pat As cCairoPattern, Color As Long, Alpha As Single
-  
+
   Alpha = W.AlphaInherited
   CC.Matrix.CalculateScale ZoomFac, ZoomFac
  
@@ -362,11 +362,53 @@ Dim Pat As cCairoPattern, Color As Long, Alpha As Single
         CC.Rectangle x, y, dx, dy, True
         CC.Stroke , Pat
  
+      Case thmTypeProgressFace
+        Const SmudgeStopSizePixels As Long = 4, SmudgeMinWidth As Long = 20
+        Dim ProgBarSmudgeWidth As Double, FinalStopSizePct As Double, ProgBarSmudgeAlpha As Double
+        If Radius < 0.8 Then Radius = 0.3 Else Radius = Radius - 0.5
+        
+        CC.RoundedRect x + 1.25, y + 1, dx, dy - 2.25, Radius, True
+          CC.SetSourceColor W.SelectionColor, Alpha
+        CC.Fill
+        
+        CC.RoundedRect x + 2, y + 2.5, dx - 0.8, dy - 4.75, Radius - 0.3, True
+          CC.SetSourceColor vbBlack, 0.1 * Alpha
+        CC.Fill
+        
+        ProgBarSmudgeWidth = dx * 0.5
+        If ProgBarSmudgeWidth < SmudgeMinWidth Then ProgBarSmudgeWidth = SmudgeMinWidth
+        
+        'Ensure that the final two stops are a fixed pixel size
+        FinalStopSizePct = SmudgeStopSizePixels / (ProgBarSmudgeWidth + SmudgeStopSizePixels) + dx * 0.0002
+        
+        ProgBarSmudgeAlpha = 0.66
+        If dx < SmudgeMinWidth Then 'adjust the Smudge opacity so that the start and end smudges don't noticably overlap
+            ProgBarSmudgeAlpha = ProgBarSmudgeAlpha * (dx / SmudgeMinWidth)
+        End If
+        
+        Color = vbBlack 'just in case somebody wants to change the Smudge-BaseColor to something different than vbBlack
+        With Cairo.CreateLinearPattern(x + dx - ProgBarSmudgeWidth, 0, x + dx + 1, 0)
+          .AddColorStop 0, Color, 0 'this stop 'stretches' while the others are fixed
+          .AddColorStop 1 - FinalStopSizePct - FinalStopSizePct, Color, 0.22 * Alpha * ProgBarSmudgeAlpha
+          .AddColorStop 1 - FinalStopSizePct, Color, 0.33 * Alpha * ProgBarSmudgeAlpha
+          .AddColorStop 1, Color, 0.45 * Alpha * ProgBarSmudgeAlpha
+          CC.RoundedRect x + dx - ProgBarSmudgeWidth + 1.1, 2, ProgBarSmudgeWidth, dy - 2.75, Radius + 1, True
+          CC.Fill , .This
+        End With
+
+        With Cairo.CreateLinearPattern(x, 0, x + ProgBarSmudgeWidth, 0)
+          .AddColorStop 0, Color, 0.51 * Alpha * ProgBarSmudgeAlpha
+          .AddColorStop FinalStopSizePct, Color, 0.33 * Alpha * ProgBarSmudgeAlpha
+          .AddColorStop FinalStopSizePct + FinalStopSizePct, Color, 0.22 * Alpha * ProgBarSmudgeAlpha
+          .AddColorStop 1, Color, 0 'this stop 'stretches' while the others are fixed
+          CC.RoundedRect x, 2, ProgBarSmudgeWidth, dy - 2.75, Radius + 1, True
+          CC.Fill , .This
+        End With
+ 
       Case thmTypeToolButtonFace
       Case thmTypeMenuButtonFace
       Case thmTypeToolBarFace
       Case thmTypeStatusBarFace
-      Case thmTypeProgressFace
       Case thmTypeHeaderFace
 
       Case thmTypeBorderShadow
