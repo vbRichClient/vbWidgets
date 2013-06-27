@@ -82,6 +82,7 @@ Public Property Let Text(ByVal NewValue$)
   CalcRows
   W.Refresh
   RaiseEvent Change
+  W.RaiseBubblingEvent Me, "Change"
 End Property
 
 Public Property Get CueBannerText$()
@@ -430,10 +431,10 @@ Dim CtrlDown As Boolean
     Case vbKeyHome: MoveCursor -CaretPos
     Case vbKeyEnd: MoveCursor Len(mText) - CaretPos
     
-    Case vbKeyInsert: If CtrlDown Then CopyText Else If ShiftDown Then InsertText W.Root.Cairo.Clipboard.GetText
+    Case vbKeyInsert: If CtrlDown Then CopyText Else If ShiftDown Then InsertText Cairo.Clipboard.GetText
     Case vbKeyX: If CtrlDown And mSelLength > 0 Then CopyText: DeleteText
     Case vbKeyC: If CtrlDown Then CopyText
-    Case vbKeyV: If CtrlDown Then InsertText W.Root.Cairo.Clipboard.GetText
+    Case vbKeyV: If CtrlDown Then InsertText Cairo.Clipboard.GetText
     Case vbKeyA
       If CtrlDown Then
         mSelStart = 0
@@ -467,6 +468,7 @@ End Sub
 
 Private Sub InsertText(NewText$)
   If mLocked Then Exit Sub
+  If Len(NewText) = 0 And mSelLength = 0 Then Exit Sub
   
   mText = Left$(mText, mSelStart) & NewText & Mid$(mText, mSelStart + mSelLength + 1)
   CaretPos = mSelStart + Len(NewText)
@@ -474,13 +476,14 @@ Private Sub InsertText(NewText$)
   mSelLength = 0: mSelStart = CaretPos
   SelBegin = CaretPos
   RaiseEvent Change
+  W.RaiseBubblingEvent Me, "Change"
 End Sub
 
 Private Sub CopyText()
   If mSelLength = 0 Or Len(mPassWordChar) > 0 Then Exit Sub
 
-  W.Root.Cairo.Clipboard.Clear
-  W.Root.Cairo.Clipboard.SetText SelText, vbCFText
+  Cairo.Clipboard.Clear
+  Cairo.Clipboard.SetText SelText, vbCFText
 End Sub
 
 Private Sub DeleteText(Optional ByVal ToTheLeft As Boolean)
@@ -925,8 +928,8 @@ Static LastTextHeight&
     j = j + 1
   Next i
   
- If Len(mText) = 0 And Len(mCueBannerText) > 0 Then		'Shows the CueBanner Text
-	CC.SelectFont W.FontName, W.FontSize, W.ShadeColor(W.DisabledColor, IIf(W.Focused, 1.2, 1)), , True
+  If Len(mText) = 0 And Len(mCueBannerText) > 0 Then 'Shows the CueBanner Text
+    CC.SelectFont W.FontName, W.FontSize, W.ShadeColor(W.DisabledColor, IIf(W.Focused, 1.2, 1)), , True
     CC.TextOut x1 + AlgnOffs, y1, mCueBannerText
   End If
   
@@ -995,7 +998,11 @@ Dim i&, CPos&, CCount&, CrLfOffs&
       Row = i + 1: RowPos = 0: LinearPos = RowPos: Exit Sub
     End If
   Next i
-  If Row = -1 Then Row = mRowCount - 1: RowPos = Abs(RowsCharCount(Row))
+  If Row = -1 Then
+    Row = mRowCount - 1
+    If Row < 0 Then Row = 0
+    RowPos = Abs(RowsCharCount(Row))
+  End If
 End Sub
 
 Private Sub CalcCaretPos()

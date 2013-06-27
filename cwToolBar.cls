@@ -19,11 +19,14 @@ Public Enum DropDownArrowType
   ddDropDown = 2
 End Enum
 
+Public AllowGripperDrawing As Boolean
+
 Private dx As Single, dy As Single, Alpha As Single
 Private WithEvents W As cWidgetBase
 Attribute W.VB_VarHelpID = -1
 
 Private Sub Class_Initialize()
+  AllowGripperDrawing = True
   Set W = Cairo.WidgetBase
       W.ForwardFocus = True
 '      W.CanGetFocus = False
@@ -95,10 +98,12 @@ Dim Pat As cCairoPattern
   CC.Paint , Pat
   CC.DrawLine 0, dy - 1, dx, dy - 1, True, 1, vbBlack, 0.3
   
-  W.Alpha = 0.85
-    Cairo.Theme.DrawTo CC, W, thmTypeSeparatorLine, 0, 5, 3, 1, dy - 4
-    Cairo.Theme.DrawTo CC, W, thmTypeSeparatorLine, 0, 7, 3, 1, dy - 4
-  W.Alpha = Alpha
+  If AllowGripperDrawing Then
+    W.Alpha = 0.85
+      Cairo.Theme.DrawTo CC, W, thmTypeSeparatorLine, 0, 5, 3, 1, dy - 4
+      Cairo.Theme.DrawTo CC, W, thmTypeSeparatorLine, 0, 7, 3, 1, dy - 4
+    W.Alpha = Alpha
+  End If
 End Sub
 
 
