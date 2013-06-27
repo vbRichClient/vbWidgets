@@ -29,6 +29,7 @@ Private mBorderRadius As Double
  
 Const MarqueeWidthPct As Double = 0.25
 Private WithEvents MarqueeTimer As cTimer, TaskBar As cTaskBar
+Attribute MarqueeTimer.VB_VarHelpID = -1
 
 Private WithEvents W As cWidgetBase
 Attribute W.VB_VarHelpID = -1
@@ -71,7 +72,7 @@ Public Property Let Value(ByVal NewValue As Single)
     W.Refresh
     If Not TaskBar Is Nothing And Not W.Root Is Nothing Then
         TaskBar.SetProgressState W.Root.DialogFormHwnd, TBPF_NORMAL
-        TaskBar.SetProgressValue W.Root.DialogFormHwnd, mValue, mMax - mMin
+        TaskBar.SetProgressValue W.Root.DialogFormHwnd, mValue - mMin, mMax - mMin
     End If
 End Property
 
@@ -208,7 +209,7 @@ Private Sub DrawUsedArea(CC As cCairoContext)
 Dim ScaledValue As Double, StartX As Double
  
     CC.SetLineWidth 0
-    ScaledValue = (mValue / (mMax - mMin)) * (mInternalW - 2.5)
+    ScaledValue = ((mValue - mMin) / (mMax - mMin)) * (mInternalW - 2.5)
     
     If mStyle <> pg_Standard Then
       StartX = ScaledValue - (mInternalW * MarqueeWidthPct)
