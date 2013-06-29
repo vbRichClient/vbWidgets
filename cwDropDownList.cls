@@ -38,10 +38,10 @@ Public Property Get Widgets() As cWidgets
   Set Widgets = W.Widgets
 End Property
 
-Public Property Get DataSource() As cDataSource
+Public Property Get DataSource()
   Set DataSource = mDS
 End Property
-Public Property Set DataSource(DS As cDataSource)
+Public Property Set DataSource(DS)
   Set mDS = DS
   If mDS.DataSource Is Nothing Then VList.ListCount = 0: Exit Property
   VList.ListCount = mDS.RecordCount
@@ -88,6 +88,11 @@ Private Sub DropDown_PopupReturnKeyPressed(DestroyPopup As Boolean)
   DropDown.DestroyPopup
 End Sub
  
+Private Sub mDS_Move(ByVal NewRowIdxZeroBased As Long)
+  If VList.ListIndex = NewRowIdxZeroBased Then Exit Sub
+  VList.ListIndex = NewRowIdxZeroBased
+End Sub
+
 Private Sub mDS_NewDataContentArrived()
   VList.ListCount = mDS.RecordCount
 End Sub
