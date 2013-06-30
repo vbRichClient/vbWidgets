@@ -23,7 +23,8 @@ Public WithEvents VList As cwVList 'we inherit visually from a preimplemented Wi
 Attribute VList.VB_VarHelpID = -1
 Public DoubleClickExpandsNodes As Boolean
 
-Private WithEvents mDS As cDataSource, WithEvents tmrDecouple As cTimer
+Private mDataSourceKey As String, WithEvents mDS As cDataSource, WithEvents tmrDecouple As cTimer
+Attribute mDataSourceKey.VB_VarHelpID = -1
 Attribute mDS.VB_VarHelpID = -1
 Attribute tmrDecouple.VB_VarHelpID = -1
 Private WithEvents W As cWidgetBase
@@ -50,6 +51,16 @@ Public Property Get Widgets() As cWidgets
 End Property
 
 '*** Public Properties ****
+Public Property Get DataSourceKey() As String
+  DataSourceKey = mDataSourceKey
+End Property
+Public Property Let DataSourceKey(ByVal NewValue As String)
+  mDataSourceKey = NewValue
+  On Error Resume Next
+    Set DataSource = Cairo.DataSources(mDataSourceKey)
+  On Error GoTo 0
+End Property
+
 Public Property Get DataSource() As cDataSource
   Set DataSource = mDS
 End Property
