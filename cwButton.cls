@@ -35,13 +35,15 @@ Event OwnerDrawOptionState(ByVal CC As cCairoContext, ByVal x As Single, ByVal y
 Private mBorderRadius As Double
 
 Private dx As Single, dy As Single, Alpha As Single
-Private BDown As Boolean, Outside As Boolean
+Private BDown As Boolean, OutSide As Boolean
 
 Private mCaption As String, mButtonStyle As CmdButtonStyle, mValue
 Private WithEvents tmrDefaultStateRefresh As cTimer
 Attribute tmrDefaultStateRefresh.VB_VarHelpID = -1
 Private mHAlignment As AlignmentConstants
-Private mDataSource As String, mDataField As String, WithEvents mDS As cDataSource
+ 
+'DataSource-Implementation-Vars
+Private WithEvents mDS As cDataSource, mDataSourceKey As String, mDataField As String
 Attribute mDS.VB_VarHelpID = -1
 
 Public ImageSize As Long, DownStateCaptionOffset As Long
@@ -87,25 +89,67 @@ Dim AccKey$, Pos&
   If Len(AccKey) Then W.AccessKeys = AccKey
 End Property
 
-Public Property Get DataSource() As String
-  DataSource = mDataSource
+'***************** Start of typical-DataSource-related Procedures ***************
+Public Function SetDataSource(CollectionOrRecordset As Object, Key As String, Optional DataField As String) As cDataSource
+If Len(DataField) Then mDataField = DataField
+Set SetDataSource = New_c.DataSource
+    SetDataSource.Init CollectionOrRecordset, Key, Cairo.DataSourceDispatcher
+    Set DataSource = SetDataSource
+End Function
+
+Public Property Get DataSourceKey() As String
+  DataSourceKey = mDataSourceKey
 End Property
-Public Property Let DataSource(ByVal NewValue As String)
-  mDataSource = NewValue
-  On Error Resume Next 'catch the error, if not existing
-    Set mDS = Cairo.DataSources(mDataSource)
-  If Err Then Err.Clear
-  If Not mDS Is Nothing And Len(mDataField) Then Value = mDS.PropValue(mDataField)
+Public Property Let DataSourceKey(ByVal NewValue As String)
+  mDataSourceKey = NewValue
+  On Error Resume Next
+    Set DataSource = Cairo.DataSources(mDataSourceKey)
+  On Error GoTo 0
 End Property
 
+Public Property Get DataSource() As cDataSource
+  Set DataSource = mDS
+End Property
+Public Property Set DataSource(DS As cDataSource)
+  Set mDS = DS
+  If mDS Is Nothing Then Exit Property
+  mDataSourceKey = mDS.Key
+  If mDS.AbsolutePosition > 0 Then Me.Value = mDS.FieldValue(FieldIndex)
+End Property
+ 
 Public Property Get DataField() As String
   DataField = mDataField
 End Property
 Public Property Let DataField(ByVal NewValue As String)
-  If mDataField = NewValue Then Exit Property
   mDataField = NewValue
-  If Not mDS Is Nothing And Len(mDataField) Then Value = mDS.PropValue(mDataField)
 End Property
+Private Property Get FieldIndex() As Long
+Dim i As Long
+  If mDS Is Nothing Then Exit Property
+  For i = 0 To mDS.FieldCount - 1
+    If StrComp(mDS.FieldName(i), mDataField, vbTextCompare) = 0 Then FieldIndex = i: Exit For
+  Next i
+End Property
+ 
+Private Sub mDS_NewDataContentArrived()
+  If mDS.AbsolutePosition > 0 Then Me.Value = mDS.FieldValue(FieldIndex)
+End Sub
+
+Private Sub mDS_Move(ByVal NewRowIdxZeroBased As Long)
+  If mDS.AbsolutePosition > 0 Then Me.Value = mDS.FieldValue(FieldIndex)
+End Sub
+
+Private Sub mDS_FieldChange(ByVal RowIdxZeroBased As Long, ByVal ColIdxZeroBased As Long)
+  If StrComp(mDataField, mDS.FieldName(ColIdxZeroBased), vbTextCompare) Then Exit Sub  'this is not our FieldName
+  If mDS.AbsolutePosition > 0 Then Me.Value = mDS.FieldValue(FieldIndex)
+End Sub
+
+Private Sub mDS_PropValueChange(Key As Variant, Value As Variant, OldValue As Variant)
+  If StrComp(mDataField, Key, vbTextCompare) Then Exit Sub   'this is not our Key
+  If mDS.AbsolutePosition > 0 Then Me.Value = mDS.FieldValue(FieldIndex)
+End Sub
+'***************** End of typical-DataSource-related Procedures ***************
+
 
 Public Property Get ButtonStyle() As CmdButtonStyle
   ButtonStyle = mButtonStyle
@@ -228,16 +272,16 @@ Private Sub W_MouseMove(Button As Integer, Shift As Integer, ByVal x As Single, 
 Dim NewOutsideValue As Boolean
  
   NewOutsideValue = (x < 0 Or x > dx Or y < 0 Or y > dy)
-  If BDown And (NewOutsideValue <> Outside) Then
-    Outside = NewOutsideValue
+  If BDown And (NewOutsideValue <> OutSide) Then
+    OutSide = NewOutsideValue
     W.Refresh
   Else
-    Outside = NewOutsideValue
+    OutSide = NewOutsideValue
   End If
 End Sub
 Private Sub W_MouseUp(Button As Integer, Shift As Integer, ByVal x As Single, ByVal y As Single)
-  If BDown And Not Outside Then CheckAndRaiseClick
-  BDown = False: Outside = False: W.Refresh
+  If BDown And Not OutSide Then CheckAndRaiseClick
+  BDown = False: OutSide = False: W.Refresh
 End Sub
 
 Private Sub CheckAndRaiseClick()
@@ -294,7 +338,7 @@ Dim CancelBuiltIn As Boolean, Alpha As Single
 
   Select Case mButtonStyle
     Case CmdButtonStyle.CommandButton
-      If BDown And Not Outside Then
+      If BDown And Not OutSide Then
         RaiseEvent OwnerDrawDownState(CC, 0, 0, dx, dy, CancelBuiltIn)
         If Not CancelBuiltIn Then DrawDownState CC
       Else
@@ -457,7 +501,7 @@ Dim BorderOverlayColor As Long
   BorderOverlayColor = W.FocusColor
   
   If W.Focused Or DefaultStateCondition Then
-    If Not (BDown And Not Outside) Then CC.SetLineWidth 2.3
+    If Not (BDown And Not OutSide) Then CC.SetLineWidth 2.3
     CC.RoundedRect 0, 0, dx, dy, mBorderRadius, True
 
     CC.SetSourceColor BorderOverlayColor, Alpha * 0.5
@@ -472,26 +516,4 @@ Dim BorderOverlayColor As Long
   End If
 End Sub
 
-
-Private Sub mDS_NewDataContentArrived()
-  If mDS Is Nothing Then Exit Sub
-  If Len(mDataField) Then Me.Value = mDS.PropValue(mDataField)
-End Sub
-
-Private Sub mDS_Move(ByVal NewRowIdxZeroBased As Long)
-  If mDS Is Nothing Then Exit Sub
-  If Len(mDataField) Then Me.Value = mDS.PropValue(mDataField)
-End Sub
-
-Private Sub mDS_FieldChange(ByVal RowIdxZeroBased As Long, ByVal ColIdxZeroBased As Long)
-  If mDS Is Nothing Then Exit Sub
-  If StrComp(mDataField, mDS.FieldName(ColIdxZeroBased), vbTextCompare) Then Exit Sub 'this is not our FieldName
-  If Len(mDataField) Then Me.Value = mDS.PropValue(mDataField)
-End Sub
-
-Private Sub mDS_PropValueChange(Key As Variant, Value As Variant, OldValue As Variant)
-  If mDS Is Nothing Then Exit Sub
-  If StrComp(mDataField, Key, vbTextCompare) Then Exit Sub   'this is not our Key
-  If Len(mDataField) Then Me.Value = mDS.PropValue(mDataField)
-End Sub
 

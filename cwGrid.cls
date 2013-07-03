@@ -22,7 +22,7 @@ Event DataSourcePositionChanged()
 
 Private WithEvents VList As cwVList 'we inherit visually from a preimplemented Widget
 Attribute VList.VB_VarHelpID = -1
-Private WithEvents W As cWidgetBase, WithEvents mDS As cDataSource
+Private WithEvents W As cWidgetBase, WithEvents mDS As cDataSource, mDataSourceKey As String
 Attribute W.VB_VarHelpID = -1
 Attribute mDS.VB_VarHelpID = -1
 
@@ -141,6 +141,16 @@ End Property
 Public Property Let AllowDelete(ByVal NewVal As Boolean)
   If mAllowDelete = NewVal Then Exit Property
   mAllowDelete = NewVal
+End Property
+
+Public Property Get DataSourceKey() As String
+  DataSourceKey = mDataSourceKey
+End Property
+Public Property Let DataSourceKey(ByVal NewValue As String)
+  mDataSourceKey = NewValue
+  On Error Resume Next
+    Set DataSource = Cairo.DataSources(mDataSourceKey)
+  On Error GoTo 0
 End Property
 
 Public Property Get DataSource() As cDataSource
