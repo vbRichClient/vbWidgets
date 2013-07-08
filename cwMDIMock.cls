@@ -65,9 +65,9 @@ Dim PRecurse As cWidgetBase
   If PRecurse Is W Then W.SetFocus
 End Sub
 
-Private Sub W_MouseDown(Button As Integer, Shift As Integer, ByVal x As Single, ByVal Y As Single)
+Private Sub W_MouseDown(Button As Integer, Shift As Integer, ByVal x As Single, ByVal y As Single)
   W.MoveToFront: W.Refresh
-  W.Moveable = Y < mBorderWidth + mCaptionHeight
+  W.Moveable = y < mBorderWidth + mCaptionHeight
 End Sub
 
 Private Sub W_Paint(CC As cCairoContext, ByVal xAbs As Single, ByVal yAbs As Single, ByVal dx_Aligned As Single, ByVal dy_Aligned As Single, UserObj As Object)

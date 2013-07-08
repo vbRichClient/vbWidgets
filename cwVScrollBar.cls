@@ -347,10 +347,9 @@ Dim BorderAlpha As Double, State As enmThemeDrawingState
 End Sub
  
 Private Sub DrawMButton(CC As cCairoContext)
-Dim y As Single, BorderColor As Long, BorderAlpha As Double, State As enmThemeDrawingState
+Dim y As Single, BorderAlpha As Double, State As enmThemeDrawingState
 
   y = ButtonSize + MButtonPos
-  BorderColor = W.BorderColor
 
   If mMax <> mMin Then
     If mDown Then
