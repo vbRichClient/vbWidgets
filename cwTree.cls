@@ -230,7 +230,7 @@ Private Sub W_MouseDown(Button As Integer, Shift As Integer, ByVal x As Single, 
 End Sub
 
 Private Sub W_KeyDown(KeyCode As Integer, Shift As Integer)
-Dim Key, Value, Parent As cCollection
+Dim Key, Value, Parent As cCollection, ParentBackIndex As Long
   If VList.ListIndex < 0 Then Exit Sub
   If Not mDS.TreeElementInfoByVisibleIndex(VList.ListIndex, Key, Value, , , Parent) Then Exit Sub
   If TypeOf Value Is cCollection Then 'we have a Node
@@ -250,15 +250,16 @@ Dim Key, Value, Parent As cCollection
         Else
           If VList.ListIndex > 0 Then VList.ListIndex = VList.ListIndex - 1
         End If
-      Case vbKeyBack:  VList.ListIndex = mDS.TreeNodeGetVisibleIndex(Parent)
+      Case vbKeyBack: ParentBackIndex = mDS.TreeNodeGetVisibleIndex(Parent) + 1
     End Select
   Else 'we have a Value-Item
     Select Case KeyCode
       Case vbKeyRight: If VList.ListIndex < mDS.Count - 1 Then VList.ListIndex = VList.ListIndex + 1
       Case vbKeyLeft:  If VList.ListIndex > 0 Then VList.ListIndex = VList.ListIndex - 1
-      Case vbKeyBack:  VList.ListIndex = mDS.TreeNodeGetVisibleIndex(Parent)
+      Case vbKeyBack:  ParentBackIndex = mDS.TreeNodeGetVisibleIndex(Parent) + 1
     End Select
   End If
+  If ParentBackIndex Then VList.ListIndex = ParentBackIndex - 1
 End Sub
 
 Private Sub tmrDecouple_Timer()
