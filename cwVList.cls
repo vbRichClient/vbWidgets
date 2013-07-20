@@ -100,7 +100,7 @@ End Property
 Public Property Let ListCount(ByVal NewValue As Long)
   If NewValue < 0 Then Exit Property
   
-  mHoverIndex = -1
+  If NewValue < mListCount Then mHoverIndex = -1
   mListCount = NewValue
   If mListIndex > mListCount - 1 Then mListIndex = mListCount - 1
   W_Resize
