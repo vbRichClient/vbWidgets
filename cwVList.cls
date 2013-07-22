@@ -268,6 +268,19 @@ Public Sub ClearSelections(Optional ByVal NewListIndex As Long = -1)
   ListIndex = NewListIndex
 End Sub
 
+Public Function GetSelections() As Variant()
+Dim i As Long, j As Long, Arr(), ArrUB As Long
+  ArrUB = 64: ReDim Arr(0 To 64)
+  For i = 0 To mListCount - 1
+    If Selected(i) Then
+      If j > ArrUB Then ArrUB = ArrUB * 1.6: ReDim Preserve Arr(0 To ArrUB)
+      Arr(j) = i: j = j + 1
+    End If
+  Next i
+  If j Then ReDim Preserve Arr(0 To j - 1) Else Arr = Array()
+  GetSelections = Arr
+End Function
+
 Public Property Get RowHeight() As Long
   RowHeight = mRowHeight
 End Property
