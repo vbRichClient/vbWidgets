@@ -62,9 +62,15 @@ Dim Pat As cCairoPattern
   CC.Fill , Pat
   
   CC.SetLineCap Cairo_LINE_CAP_SQUARE
-  CC.SetLineWidth 1, True
-  CC.SetSourceColor W.BorderColor, 0.8
-  CC.DrawLine 0, 0, dx, 0, True
+    CC.SetLineWidth 1, True
+    CC.SetSourceColor W.BorderColor, 0.8
+    CC.DrawLine 0, 0, dx, 0, True
+  CC.Stroke
+  CC.SetSourceColor vbWhite, 0.8
+    CC.DrawLine 0, 1, dx, 1, True
+  CC.Stroke
+  CC.SetSourceColor vbWhite, 0.8, 0.85
+    CC.DrawLine 0, dy - 1, dx, dy - 1, True
   CC.Stroke
   
   RaiseEvent OwnerDrawOnTop(CC, dx, dy)
