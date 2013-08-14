@@ -26,7 +26,7 @@ Private WithEvents W As cWidgetBase, WithEvents mDS As cDataSource, mDataSourceK
 Attribute W.VB_VarHelpID = -1
 Attribute mDS.VB_VarHelpID = -1
 
-Private mAllowEdit As Boolean, mAllowAddNew As Boolean, mAllowDelete As Boolean
+Private mAllowEdit As Boolean, mAllowAddNew As Boolean, mAllowDelete As Boolean, mlngAlternateRowColor As Long
 
 Private Sub Class_Initialize()
   Set VList = New cwVList
@@ -41,6 +41,7 @@ Private Sub Class_Initialize()
       W.RuntimePropertiesCommaSeparated = "ColumnIndex,ColumnCount,ColumnWidth,RowIndex"
 '      W.BackColor = -1
 '      W.Alpha = 0.7
+  mlngAlternateRowColor = -1
 End Sub
 
 Public Property Get Widget() As cWidgetBase
@@ -262,12 +263,19 @@ Dim i As Long, StartIdx As Long, V, S As String, xx As Double, ww As Long
     ww = VList.ColumnWidth(i)
     If ww > 0 Then
       If i = StartIdx + VList.VisibleCols - 1 Then ww = dx - xx
- 
       V = mDS.ValueMatrix(Index, VList.ColMapIndex(i))
       Select Case VarType(V)
         Case vbByte Or vbArray: S = "<BLOB>"
         Case Else: S = V
       End Select
+      If AlternateRowColor <> -1 Then
+        'here we ensure a different Background-Line-Coloring for Odd-Indexes.
+        If Index Mod 2 Then
+          CC.Rectangle 0, 0, dx, dy, True
+            CC.SetSourceColor AlternateRowColor
+          CC.Fill
+        End If
+      End If
  
       CC.DrawText xx, 0, ww, dy, S, True, vbLeftJustify, 2, True
       xx = xx + ww
@@ -275,3 +283,12 @@ Dim i As Long, StartIdx As Long, V, S As String, xx As Double, ww As Long
   Next i
 End Sub
  
+Public Property Get AlternateRowColor() As Long
+  AlternateRowColor = mlngAlternateRowColor
+End Property
+
+Public Property Let AlternateRowColor(ByVal lngAlternateRowColor As Long)
+  If lngAlternateRowColor = mlngAlternateRowColor Then Exit Property
+  mlngAlternateRowColor = lngAlternateRowColor
+  W.Refresh
+End Property
