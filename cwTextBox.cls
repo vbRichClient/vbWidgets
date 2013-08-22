@@ -43,6 +43,7 @@ Attribute HScrollBar.VB_VarHelpID = -1
 
 Private InsideDraw As Boolean
 Private mUndoDepth As Byte, HScrollX&, HScrollMax&
+Private mAutoSelectAll As Boolean
 
 Public UserdefinedHovering As Boolean
 
@@ -177,6 +178,14 @@ End Property
 Public Property Let SelText(ByVal NewValue$)
   InsertText NewValue
   W.Refresh
+End Property
+
+Public Property Get AutoSelectAll() As Boolean
+  AutoSelectAll = mAutoSelectAll
+End Property
+
+Public Property Let AutoSelectAll(ByVal AutoSelectAll As Boolean)
+  mAutoSelectAll = AutoSelectAll
 End Property
 
 Public Property Get Border() As Boolean
@@ -527,6 +536,10 @@ Private Sub MoveCursor(ByVal Offs&, Optional ByVal IsRowOffset As Boolean)
 End Sub
 
 Private Sub W_GotFocus()
+  If mAutoSelectAll Then
+     Me.SelStart = 0
+     Me.SelLength = Len(Me.Text)
+  End If
   Set tCaret = W.Root.CreateTimer(40, True)
   CaretInvertCounter = 0
 End Sub
@@ -1036,3 +1049,4 @@ Private Function SetCurFont(Optional MCC As cCairoContext) As cCairoContext
   End If
   Set SetCurFont = MCC
 End Function
+
