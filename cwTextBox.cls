@@ -442,8 +442,16 @@ Dim CtrlDown As Boolean
     Case vbKeyDown: MoveCursor 1, True
     Case vbKeyLeft: MoveCursor -1
     
-    Case vbKeyPageUp: TopRow = VSValue - VSLargeChange: Exit Sub
-    Case vbKeyPageDown: TopRow = VSValue + VSLargeChange: Exit Sub
+    Case vbKeyPageUp
+      TopRow = VSValue - VSLargeChange: Exit Sub
+      Debug.Print "PageUp: " & TopRow
+      
+    Case vbKeyPageDown
+      If Me.RowCount <= VSLargeChange Then
+         MoveCursor Len(mText) - CaretPos
+      Else
+         TopRow = VSValue + VSLargeChange: Exit Sub
+      End If
 
     Case vbKeyHome: MoveCursor -CaretPos
     Case vbKeyEnd: MoveCursor Len(mText) - CaretPos
