@@ -427,6 +427,9 @@ End Sub
 
 Private Sub W_KeyDown(KeyCode As Integer, Shift As Integer)
 Dim CtrlDown As Boolean
+Dim NewRow As Long
+Dim NewPos As Long
+
   RaiseEvent KeyDown(KeyCode, Shift)
   ShiftDown = Shift And vbShiftMask
   CtrlDown = Shift And vbCtrlMask
@@ -443,18 +446,46 @@ Dim CtrlDown As Boolean
     Case vbKeyLeft: MoveCursor -1
     
     Case vbKeyPageUp
-      TopRow = VSValue - VSLargeChange: Exit Sub
-      Debug.Print "PageUp: " & TopRow
+      NewRow = VSValue - VSLargeChange
+      If NewRow < 0 Then NewRow = 0
+      TopRow = NewRow
+      Exit Sub
       
     Case vbKeyPageDown
-      If Me.RowCount <= VSLargeChange Then
-         MoveCursor Len(mText) - CaretPos
+      NewRow = VSValue + VSLargeChange
+      If NewRow > Me.RowCount - 1 Then NewRow = Me.RowCount - 1
+      TopRow = NewRow
+      Exit Sub
+      
+    Case vbKeyHome
+      If mMultiLine And (Not CtrlDown) Then
+         ' Move to beginning of current line
+         NewPos = InStrRev(mText, vbNewLine, CaretPos)
+         If NewPos <= 0 Then
+            NewPos = 0
+         Else
+            NewPos = NewPos + 1
+         End If
       Else
-         TopRow = VSValue + VSLargeChange: Exit Sub
+         ' Move to beginning of text
+         NewPos = 0
       End If
-
-    Case vbKeyHome: MoveCursor -CaretPos
-    Case vbKeyEnd: MoveCursor Len(mText) - CaretPos
+      MoveCursor NewPos - CaretPos
+    
+    Case vbKeyEnd
+      If mMultiLine And (Not CtrlDown) Then
+         ' Move to end of current line
+         NewPos = InStr(CaretPos + 1, mText, vbNewLine)
+         If NewPos <= 0 Then
+            NewPos = Len(mText)
+         Else
+            NewPos = NewPos - 1
+         End If
+      Else
+         ' Move to end of text
+         NewPos = Len(mText)
+      End If
+      MoveCursor NewPos - CaretPos
     
     Case vbKeyInsert: If CtrlDown Then CopyText Else If ShiftDown Then InsertText Cairo.Clipboard.GetText
     Case vbKeyX: If CtrlDown And mSelLength > 0 Then CopyText: DeleteText
@@ -470,6 +501,7 @@ Dim CtrlDown As Boolean
 
     Case Else: Exit Sub
   End Select
+  
   If Err Then Err.Clear
   EnsureVisible
 End Sub
