@@ -44,6 +44,7 @@ Attribute HScrollBar.VB_VarHelpID = -1
 Private InsideDraw As Boolean
 Private mUndoDepth As Byte, HScrollX&, HScrollMax&
 Private mAutoSelectAll As Boolean
+Private mHideSelection As Boolean
 
 Public UserdefinedHovering As Boolean
 
@@ -186,6 +187,13 @@ End Property
 
 Public Property Let AutoSelectAll(ByVal AutoSelectAll As Boolean)
   mAutoSelectAll = AutoSelectAll
+End Property
+
+Public Property Get HideSelection() As Boolean
+   HideSelection = mHideSelection
+End Property
+Public Property Let HideSelection(ByVal HideSelection As Boolean)
+   mHideSelection = HideSelection
 End Property
 
 Public Property Get Border() As Boolean
@@ -854,24 +862,24 @@ Static LastTextHeight&
   End If
   
   Color = IIf(W.Focused, W.SelectionColor, W.ShadeColor(W.DisabledColor, 1.3))
-  
+
   If mSelLength Then
     CalcCoords mSelStart, SelStartRow, SelStartPos
     CalcCoords mSelStart + mSelLength, SelEndRow, SelEndPos
   End If
-  
+
   MaxIdx = IIf(VSValue + mVisibleRows > mRowCount, mRowCount - 1, VSValue + mVisibleRows - 1)
   pS = StrPtr(mText)
-  
+
   If mVCenter Then
     VOffs = (dy - BorderOffs - 1 - mInnerSpace - mRowCount * RowHeight - IIf(HScrollBar Is Nothing, 0, mScrollerSize)) \ 2
-  
+
     If mBorder Then
       If VOffs < -1 Then VOffs = -1
     Else
       If VOffs < -2 Then VOffs = -2
     End If
-    
+
   End If
   
   If VSValue > MaxIdx Then VStart = MaxIdx Else VStart = VSValue
@@ -880,33 +888,37 @@ Static LastTextHeight&
   x1 = BorderOffs + 1
   
   For i = VStart To MaxIdx
-  
+
     y1 = j * RowHeight + BorderOffs + 1 + VOffs
     y2 = (j + 1) * RowHeight + BorderOffs + VOffs   'current y-Coords
     CharOffs = 0
-    
+   
     'Full Row-length
     TWidth = CC.GetTextExtentPtr(pS + RowsCharOffset(i), Abs(RowsCharCount(i))) + 1
     'calculate Alignment-Offset
     AlgnOffs = GetAlignOffset(TWidth) - HScrollX
-    
+   
     'Selection-Handling
     If mSelLength Then
-      If i = SelStartRow Then 'special handling in the first selected row
-        Ext = CC.GetTextExtentPtr(pS + RowsCharOffset(i), SelStartPos)
-      ElseIf i > SelStartRow And i < SelEndRow Then 'full row is selected
-        Ext = 0
-      End If
-      EndExt = TWidth
-      If i = SelEndRow Then 'special handling in the last selected Row
-        If SelEndRow > SelStartRow Then Ext = 0
-        EndExt = CC.GetTextExtentPtr(pS + RowsCharOffset(i), SelEndPos)
-      End If
+      If (Not mHideSelection) Or W.Focused Then
+        ' We either have focus, or we don't have focus and mHideSelection = False
+        ' So draw the selection highlight
+        If i = SelStartRow Then 'special handling in the first selected row
+          Ext = CC.GetTextExtentPtr(pS + RowsCharOffset(i), SelStartPos)
+        ElseIf i > SelStartRow And i < SelEndRow Then 'full row is selected
+          Ext = 0
+        End If
+        EndExt = TWidth
+        If i = SelEndRow Then 'special handling in the last selected Row
+          If SelEndRow > SelStartRow Then Ext = 0
+          EndExt = CC.GetTextExtentPtr(pS + RowsCharOffset(i), SelEndPos)
+        End If
       
-      If i >= SelStartRow And i <= SelEndRow Then
-        CC.SetSourceColor Color, Alpha * 0.75 'prepare for selections
-        CC.Rectangle (Ext + x1 + AlgnOffs), y1, (EndExt - Ext + 0.5), y2 - y1 + 1, False
-        CC.Fill
+        If i >= SelStartRow And i <= SelEndRow Then
+          CC.SetSourceColor Color, Alpha * 0.75 'prepare for selections
+          CC.Rectangle (Ext + x1 + AlgnOffs), y1, (EndExt - Ext + 0.5), y2 - y1 + 1, False
+          CC.Fill
+        End If
       End If
     End If
     
