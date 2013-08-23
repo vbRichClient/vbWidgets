@@ -29,6 +29,8 @@ Event KeyUp(KeyCode As Integer, Shift As Integer)
 Event Validate(Cancel As Boolean)
 Event MaxLengthViolation() ' An insert operation was cancelled because it would violate the MaxLength property value
 Event BeforePaste(TextToPaste As String, Cancel As Boolean)
+Event BeforeSelChange(NewSelStart As Long, NewSelLength As Long, ReverseSelection As Boolean, Cancel As Boolean)
+Event SelChanged(ByVal OldSelStart As Long, ByVal OldSelLength As Long, ByVal OldCaretPosition As Long)
 
 Private dx As Single, dy As Single, Alpha As Single, Zoom As Single, dxx As Single, dyy As Single
 Private mText$, mPassWordChar$, mMultiLine As Boolean, mMaxRowWidth As Single, mVisibleRows&, mCueBannerText As String
@@ -179,27 +181,14 @@ Public Property Get SelStart&()
   SelStart = mSelStart
 End Property
 Public Property Let SelStart(ByVal NewValue&)
-  If NewValue < 0 Then NewValue = 0
-  If NewValue > Len(mText) Then NewValue = Len(mText)
-  mSelStart = NewValue: mSelLength = 0
-  CaretPos = mSelStart: SelBegin = CaretPos
-  CalcCoords CaretPos, CurRow, CurPos
-  CaretInvertCounter = 0
-  W.Refresh
+  SetSelection NewValue, 0
 End Property
 
 Public Property Get SelLength&()
   SelLength = mSelLength
 End Property
 Public Property Let SelLength(ByVal NewValue As Long)
-  If NewValue < 0 Then NewValue = 0
-  If NewValue > Len(mText) Then NewValue = Len(mText)
-  mSelLength = NewValue
-  CaretPos = mSelStart + mSelLength
-  If mSelLength = 0 Then SelBegin = mSelStart
-  CalcCoords CaretPos, CurRow, CurPos
-  CaretInvertCounter = 0
-  EnsureVisible
+  SetSelection Me.SelStart, NewValue
 End Property
 
 Public Property Get SelText$()
@@ -272,10 +261,7 @@ Public Property Let ScrollBars(ByVal NewValue As ScrollBarConstants)
 End Property
 
 Public Sub SelectAll()
-  mSelStart = 0
-  SelLength = Len(mText)
-  CaretPos = Len(mText)
-  CalcCoords CaretPos, CurRow, CurPos
+  SetSelection 0, Len(mText)
 End Sub
 
 Public Function RowCount&()
@@ -453,12 +439,11 @@ Dim i&, S$, WLeft%, WRight%, W%, PLeft&, PRight&
     PRight = i: If PRight > Len(S) Then PRight = Len(S)
   End If
   
-  If PLeft < CurPos Then mSelStart = mSelStart - (CurPos - PLeft)
-  SelBegin = mSelStart ' + mSelLength
-  SelLength = PRight - PLeft
-  CaretPos = mSelStart + mSelLength
-  CalcCoords CaretPos, CurRow, CurPos
-  EnsureVisible
+  If PLeft < CurPos Then
+    SetSelection mSelStart - (CurPos - PLeft), PRight - PLeft, True
+  Else
+    SetSelection mSelStart, PRight - PLeft
+  End If
 End Sub
 
 Private Sub W_FontChanged()
@@ -584,10 +569,8 @@ Private Sub InsertText(NewText$)
   End If
    
   mText = Left$(mText, mSelStart) & NewText & Mid$(mText, mSelStart + mSelLength + 1)
-  CaretPos = mSelStart + Len(NewText)
   CalcRows
-  mSelLength = 0: mSelStart = CaretPos
-  SelBegin = CaretPos
+  SetSelection mSelStart + Len(NewText), 0
   RaiseEvent Change
   W.RaiseBubblingEvent Me, "Change"
 End Sub
@@ -615,14 +598,15 @@ Private Sub DeleteText(Optional ByVal ToTheLeft As Boolean)
   If mSelLength = 0 Then
     If ToTheLeft And mSelStart > 0 Then
       If Mid$(mText, mSelStart, 1) = vbLf Then
-        mSelStart = mSelStart - 2: mSelLength = 2
+        SetSelection mSelStart - 2, 2
       Else
-        mSelStart = mSelStart - 1: mSelLength = 1
+        SetSelection mSelStart - 1, 1
       End If
     ElseIf Not ToTheLeft And mSelStart < Len(mText) Then
       If Mid$(mText, mSelStart + 1, 1) = vbCr Then mSelLength = 2 Else mSelLength = 1
     End If
   End If
+  
   InsertText ""
 End Sub
 
@@ -634,6 +618,7 @@ Private Sub MoveCursor(ByVal Offs&, Optional ByVal MoveType As eMoveCursorType =
   Dim InWordBreak As Boolean
   Dim MoveCount As Long
   Dim FoundNonWhitespace As Boolean
+  Dim SkipSelection As Boolean
   
   If Offs = 0 Then Exit Sub   ' No movement, short-circuit
   
@@ -718,6 +703,7 @@ Private Sub MoveCursor(ByVal Offs&, Optional ByVal MoveType As eMoveCursorType =
       ' HACK: for backward movement
       If CaretPos > 0 Then
          ' Not at beginning of text box, so move forward one word
+         SkipSelection = True
          MoveCursor 1, movecursor_Word
       End If
    End If
@@ -727,11 +713,16 @@ Private Sub MoveCursor(ByVal Offs&, Optional ByVal MoveType As eMoveCursorType =
     
   End Select
   
-  If ShiftDown Then
-    If SelBegin < CaretPos Then mSelStart = SelBegin Else mSelStart = CaretPos
-    mSelLength = Abs(SelBegin - CaretPos)
-  Else
-    mSelStart = CaretPos: mSelLength = 0: SelBegin = CaretPos
+  If Not SkipSelection Then
+    If ShiftDown Then
+      If SelBegin < CaretPos Then
+        SetSelection SelBegin, Abs(SelBegin - CaretPos)
+      Else
+        SetSelection CaretPos, Abs(SelBegin - CaretPos), True
+      End If
+    Else
+      SetSelection CaretPos, 0
+    End If
   End If
 End Sub
 
@@ -760,11 +751,15 @@ Private Sub W_MouseDown(Button As Integer, Shift As Integer, ByVal x As Single, 
   If Button = 1 Then BDown = True
   If Len(mText) = 0 Then Exit Sub
   CalcCaretPosFromMouseCoords x, y
+    
   If ShiftDown Then
-    If CaretPos < SelBegin Then mSelStart = CaretPos Else mSelStart = SelBegin
-    mSelLength = Abs(SelBegin - CaretPos)
+    If CaretPos < SelBegin Then
+      SetSelection CaretPos, Abs(SelBegin - CaretPos), True
+    Else
+      SetSelection SelBegin, Abs(SelBegin - CaretPos)
+    End If
   Else
-    mSelLength = 0: mSelStart = CaretPos: SelBegin = CaretPos
+    SetSelection CaretPos, 0
   End If
   EnsureVisible
 End Sub
@@ -795,10 +790,12 @@ Dim i&, dy&
     Else 'handling without scroll-timer-support
       Set T = Nothing
       CalcCaretPosFromMouseCoords x, y
-      mSelLength = Abs(SelBegin - CaretPos)
-      If CaretPos < SelBegin Then mSelStart = CaretPos Else mSelStart = SelBegin
-
-      EnsureVisible
+      
+      If CaretPos < SelBegin Then
+         SetSelection CaretPos, Abs(SelBegin - CaretPos), True
+      Else
+         SetSelection SelBegin, Abs(SelBegin - CaretPos)
+      End If
     End If
   End If
 End Sub
@@ -923,15 +920,13 @@ Dim x&, y&, dy&
   y = Split(T.Tag, "_")(1)
 
   ShiftDown = True
-  If y < 0 Then 'Up
+  If (y < 0) Or ((y - dy) > 0) Then
     CalcCaretPosFromMouseCoords x, y
-    mSelLength = Abs(SelBegin - CaretPos)
-    If CaretPos < SelBegin Then mSelStart = CaretPos Else mSelStart = SelBegin
-    MoveCursor 0, movecursor_Row
-  ElseIf (y - dy) > 0 Then
-    CalcCaretPosFromMouseCoords x, y
-    mSelLength = Abs(SelBegin - CaretPos)
-    If CaretPos < SelBegin Then mSelStart = CaretPos Else mSelStart = SelBegin
+    If CaretPos < SelBegin Then
+      SetSelection CaretPos, Abs(SelBegin - CaretPos), True
+    Else
+      SetSelection SelBegin, Abs(SelBegin - CaretPos)
+    End If
     MoveCursor 0, movecursor_Row
   End If
   ShiftDown = False
@@ -1253,3 +1248,77 @@ Private Function SetCurFont(Optional MCC As cCairoContext) As cCairoContext
   Set SetCurFont = MCC
 End Function
 
+Private Sub NormalizeSelectionIndexes(ZeroBasedStartIndex As Long, Length As Long)
+  If ZeroBasedStartIndex < 0 Then ZeroBasedStartIndex = 0
+  If ZeroBasedStartIndex > Len(mText) Then ZeroBasedStartIndex = Len(mText)
+  
+  If Length < 0 Then Length = 0
+  If ZeroBasedStartIndex + Length > Len(mText) Then Length = Len(mText) - ZeroBasedStartIndex
+End Sub
+
+Private Function SelectionWillChange(ByVal OldSelStart As Long, ByVal OldSelLength As Long, ByVal OldCaretPos As Long, ByVal NewSelStart As Long, ByVal NewSelLength As Long, ByVal ReverseSelection As Boolean) As Boolean
+  SelectionWillChange = True ' Assume selection will change
+  
+  If (OldSelStart = NewSelStart) Then
+    If (OldSelLength = NewSelLength) Then
+      If (((OldCaretPos = OldSelStart) And ReverseSelection) Or _
+         ((OldCaretPos = OldSelStart + OldSelLength) And Not ReverseSelection)) Then
+         
+        ' Select will not change
+        SelectionWillChange = False
+      End If
+    End If
+  End If
+End Function
+
+Private Sub SetSelection(ByVal ZeroBasedStartIndex As Long, ByVal Length As Long, Optional ByVal ReverseSelection As Boolean = False)
+  Dim OldSelStart As Long
+  Dim OldSelLength As Long
+  Dim OldCaretPos As Long
+  Dim Cancel As Boolean
+   
+  ' Any attempts to change the selection/caret position should go through this sub
+  ' in order to raise BeforeSelChange and SelChanged events
+   
+  OldSelStart = Me.SelStart
+  OldSelLength = Me.SelLength
+  OldCaretPos = CaretPos
+  
+  ' Normalize the passed selection indexes to fit within text boundaries
+  NormalizeSelectionIndexes ZeroBasedStartIndex, Length
+  ' Test if selection will actually change based on passed values - if not, then short-circuit
+  If Not SelectionWillChange(OldSelStart, OldSelLength, OldCaretPos, ZeroBasedStartIndex, Length, ReverseSelection) Then
+    Exit Sub
+  End If
+  
+  ' Selection will be changed based on currently passed values
+  ' Give client a chance to modify/cancel the selection
+  RaiseEvent BeforeSelChange(ZeroBasedStartIndex, Length, ReverseSelection, Cancel)
+  If Cancel Then Exit Sub
+  
+  ' Renormalize and retest for selection change in case client changed ByRef variables
+  NormalizeSelectionIndexes ZeroBasedStartIndex, Length
+  If Not SelectionWillChange(OldSelStart, OldSelLength, OldCaretPos, ZeroBasedStartIndex, Length, ReverseSelection) Then
+    Exit Sub
+  End If
+  
+  mSelStart = ZeroBasedStartIndex
+  mSelLength = Length
+  
+  If ReverseSelection Then
+    CaretPos = mSelStart
+    SelBegin = mSelStart + mSelLength
+  Else
+    CaretPos = mSelStart + mSelLength
+    SelBegin = mSelStart
+  End If
+  
+  CalcCoords CaretPos, CurRow, CurPos
+  
+  EnsureVisible
+  
+  CaretInvertCounter = 0
+  W.Refresh
+      
+  RaiseEvent SelChanged(OldSelStart, OldSelLength, OldCaretPos)
+End Sub
