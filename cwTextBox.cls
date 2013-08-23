@@ -409,6 +409,10 @@ Private Sub VScrollBar_Scroll()
   VScrollBar_Change
 End Sub
 
+Private Sub W_Click()
+   RaiseEvent Click
+End Sub
+
 Private Sub W_DblClick()
 Dim i&, S$, WLeft%, WRight%, W%, PLeft&, PRight&
  
