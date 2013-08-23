@@ -446,16 +446,20 @@ Dim NewPos As Long
     Case vbKeyLeft: MoveCursor -1
     
     Case vbKeyPageUp
-      NewRow = VSValue - VSLargeChange
-      If NewRow < 0 Then NewRow = 0
-      TopRow = NewRow
-      Exit Sub
+      If mMultiLine Then
+        MoveCursor -mVisibleRows + 1, True
+      End If
       
     Case vbKeyPageDown
-      NewRow = VSValue + VSLargeChange
-      If NewRow > Me.RowCount - 1 Then NewRow = Me.RowCount - 1
-      TopRow = NewRow
-      Exit Sub
+      If mMultiLine Then
+        MoveCursor mVisibleRows - 1, True
+        
+        If (CurRow < RowCount - 1) Then
+          ' Cursor not at bottom of visible textbox area,
+          ' so bump the current caret row to the top of the textbox
+          TopRow = CurRow
+        End If
+      End If
       
     Case vbKeyHome
       If mMultiLine And (Not CtrlDown) Then
