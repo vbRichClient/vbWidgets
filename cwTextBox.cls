@@ -13,6 +13,12 @@ Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 Option Explicit
 
+Private Enum eMoveCursorType
+   movecursor_Char
+   movecursor_Word
+   movecursor_Row
+End Enum
+
 Event Click()
 Event Scroll()
 Event Change()
@@ -442,25 +448,28 @@ Dim NewPos As Long
   ShiftDown = Shift And vbShiftMask
   CtrlDown = Shift And vbCtrlMask
   On Error Resume Next
-'  Debug.Print "Down", KeyCode
+  
   Select Case KeyCode
     Case vbKeyReturn: If mMultiLine Then InsertText vbCrLf
 
     Case vbKeyDelete: If ShiftDown And mSelLength > 0 Then CopyText: DeleteText
                       If Not ShiftDown Then DeleteText
-    Case vbKeyUp: MoveCursor -1, True
-    Case vbKeyRight: MoveCursor 1
-    Case vbKeyDown: MoveCursor 1, True
-    Case vbKeyLeft: MoveCursor -1
+    Case vbKeyUp: MoveCursor -1, movecursor_Row
+    Case vbKeyDown: MoveCursor 1, movecursor_Row
+    Case vbKeyRight
+      MoveCursor 1, IIf(CtrlDown, movecursor_Word, movecursor_Char)
+    
+    Case vbKeyLeft
+      MoveCursor -1, IIf(CtrlDown, movecursor_Word, movecursor_Char)
     
     Case vbKeyPageUp
       If mMultiLine Then
-        MoveCursor -mVisibleRows + 1, True
+        MoveCursor -mVisibleRows + 1, movecursor_Row
       End If
       
     Case vbKeyPageDown
       If mMultiLine Then
-        MoveCursor mVisibleRows - 1, True
+        MoveCursor mVisibleRows - 1, movecursor_Row
         
         If (CurRow < RowCount - 1) Then
           ' Cursor not at bottom of visible textbox area,
@@ -569,13 +578,27 @@ Private Sub DeleteText(Optional ByVal ToTheLeft As Boolean)
   InsertText ""
 End Sub
 
-Private Sub MoveCursor(ByVal Offs&, Optional ByVal IsRowOffset As Boolean)
-  If IsRowOffset Then
+Private Sub MoveCursor(ByVal Offs&, Optional ByVal MoveType As eMoveCursorType = movecursor_Char)
+  Dim i As Long
+  Dim LoopStart As Long
+  Dim LoopEnd As Long
+  Dim LoopStep As Long
+  Dim InWordBreak As Boolean
+  Dim MoveCount As Long
+  Dim FoundNonWhitespace As Boolean
+  
+  If Offs = 0 Then Exit Sub   ' No movement, short-circuit
+  
+  Select Case MoveType
+  Case movecursor_Row
+    ' Move cursor to line
     CurRow = CurRow + Offs
     If CurRow < 0 Then CurRow = 0 Else If CurRow > mRowCount - 1 Then CurRow = mRowCount - 1
     If CurPos > Abs(RowsCharCount(CurRow)) Then CurPos = Abs(RowsCharCount(CurRow))
     CalcCaretPos
-  Else
+    
+  Case movecursor_Char
+    ' Move cursor to character
     CaretPos = CaretPos + Offs
     If RowsCharCount(CurRow) <= 0 And Abs(RowsCharCount(CurRow)) = CurPos And Offs > 0 Then
       CaretPos = CaretPos + 1 'linebreak-correction
@@ -585,7 +608,77 @@ Private Sub MoveCursor(ByVal Offs&, Optional ByVal IsRowOffset As Boolean)
     End If
     If CaretPos < 0 Then CaretPos = 0 Else If CaretPos > Len(mText) Then CaretPos = Len(mText)
     CalcCoords CaretPos, CurRow, CurPos
-  End If
+   
+  Case movecursor_Word
+    ' Move cursor to word break
+    If Offs < 0 Then
+      ' Moving backwards
+      LoopStart = CaretPos
+      LoopEnd = 1
+      LoopStep = -1
+      Offs = Offs - 1   ' HACK: For backward movement, we'll move back to the end of an extra word,
+                        '       then move forward to find the beginning of the word
+    Else
+      ' Moving forwards
+      LoopStart = CaretPos + 1
+      LoopEnd = Len(mText)
+      LoopStep = 1
+    End If
+    
+    For i = LoopStart To LoopEnd Step LoopStep
+      Select Case Asc(Mid$(mText, i, 1))
+      Case 32, 9  ' Space or Tab, i.e. Wordbreak character
+        If (Offs < 0 And FoundNonWhitespace) Or (Offs > 0) Then
+          If Not InWordBreak Then
+            ' Signal that we are in a stretch of one or more whitespace characters
+            InWordBreak = True
+          End If
+        End If
+        
+      Case Else   ' Non-wordbreak character
+        If InWordBreak Then
+          ' Set cursor position here
+          CaretPos = i - IIf(Offs < 0, 0, 1)
+          
+          MoveCount = MoveCount + LoopStep
+          If MoveCount = Offs Then
+            ' We've moved the requisite number of words, so short-circuit the loop
+            FoundNonWhitespace = False
+              
+            Exit For
+          End If
+        End If
+        
+        FoundNonWhitespace = True
+      End Select
+    Next i
+    
+    If i = 0 And Offs < 0 Then
+      ' We didn't find a word break before hitting the beginning of the text in backward search
+      ' So move the caret to the beginning of the text
+      CaretPos = 0
+    
+    ElseIf i > Len(mText) And Offs > 0 Then
+      ' We didn't find a word break before hitting the end of the text in forward search
+      ' So move the caret to the end of the text
+      CaretPos = Len(mText)
+    End If
+    
+    CalcCoords CaretPos, CurRow, CurPos
+  
+    If Offs < 0 Then
+      ' HACK: for backward movement
+      If CaretPos > 0 Then
+         ' Not at beginning of text box, so move forward one word
+         MoveCursor 1, movecursor_Word
+      End If
+   End If
+  
+  Case Else
+    Err.Raise 5, , "Unknown cursor move type: " & MoveType
+    
+  End Select
+  
   If ShiftDown Then
     If SelBegin < CaretPos Then mSelStart = SelBegin Else mSelStart = CaretPos
     mSelLength = Abs(SelBegin - CaretPos)
@@ -786,12 +879,12 @@ Dim x&, y&, dy&
     CalcCaretPosFromMouseCoords x, y
     mSelLength = Abs(SelBegin - CaretPos)
     If CaretPos < SelBegin Then mSelStart = CaretPos Else mSelStart = SelBegin
-    MoveCursor 0, True
+    MoveCursor 0, movecursor_Row
   ElseIf (y - dy) > 0 Then
     CalcCaretPosFromMouseCoords x, y
     mSelLength = Abs(SelBegin - CaretPos)
     If CaretPos < SelBegin Then mSelStart = CaretPos Else mSelStart = SelBegin
-    MoveCursor 0, True
+    MoveCursor 0, movecursor_Row
   End If
   ShiftDown = False
   
