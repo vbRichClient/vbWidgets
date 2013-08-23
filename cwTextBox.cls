@@ -14,9 +14,9 @@ Attribute VB_Exposed = True
 Option Explicit
 
 Private Enum eMoveCursorType
-   movecursor_Char
-   movecursor_Word
-   movecursor_Row
+   movecursor_Char   ' Offset cursor by characters
+   movecursor_Word   ' Offset cursor by words
+   movecursor_Row    ' Offset cursor by lines
 End Enum
 
 Event Click()
@@ -27,7 +27,7 @@ Event KeyDown(KeyCode As Integer, Shift As Integer)
 Event KeyPress(KeyAscii As Integer)
 Event KeyUp(KeyCode As Integer, Shift As Integer)
 Event Validate(Cancel As Boolean)
-Event MaxLengthViolation()
+Event MaxLengthViolation() ' An insert operation was cancelled because it would violate the MaxLength property value
 Event BeforePaste(TextToPaste As String, Cancel As Boolean)
 
 Private dx As Single, dy As Single, Alpha As Single, Zoom As Single, dxx As Single, dyy As Single
@@ -671,7 +671,7 @@ Private Sub MoveCursor(ByVal Offs&, Optional ByVal MoveType As eMoveCursorType =
     
     For i = LoopStart To LoopEnd Step LoopStep
       Select Case Asc(Mid$(mText, i, 1))
-      Case 32, 9, 10, 13  ' Space or Tab, newline , i.e. Wordbreak character
+      Case 32, 9, 10, 13  ' Space, Tab, CR or LF, i.e. Wordbreak character
         If (Offs < 0 And FoundNonWhitespace) Or (Offs > 0) Then
           If Not InWordBreak Then
             ' Signal that we are in a stretch of one or more whitespace characters
