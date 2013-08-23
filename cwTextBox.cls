@@ -671,7 +671,7 @@ Private Sub MoveCursor(ByVal Offs&, Optional ByVal MoveType As eMoveCursorType =
     
     For i = LoopStart To LoopEnd Step LoopStep
       Select Case Asc(Mid$(mText, i, 1))
-      Case 32, 9  ' Space or Tab, i.e. Wordbreak character
+      Case 32, 9, 10, 13  ' Space or Tab, newline , i.e. Wordbreak character
         If (Offs < 0 And FoundNonWhitespace) Or (Offs > 0) Then
           If Not InWordBreak Then
             ' Signal that we are in a stretch of one or more whitespace characters
