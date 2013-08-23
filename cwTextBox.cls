@@ -28,6 +28,7 @@ Event KeyPress(KeyAscii As Integer)
 Event KeyUp(KeyCode As Integer, Shift As Integer)
 Event Validate(Cancel As Boolean)
 Event MaxLengthViolation()
+Event BeforePaste(TextToPaste As String, Cancel As Boolean)
 
 Private dx As Single, dy As Single, Alpha As Single, Zoom As Single, dxx As Single, dyy As Single
 Private mText$, mPassWordChar$, mMultiLine As Boolean, mMaxRowWidth As Single, mVisibleRows&, mCueBannerText As String
@@ -531,10 +532,10 @@ Dim NewPos As Long
       
       MoveCursor NewPos - CaretPos
     
-    Case vbKeyInsert: If CtrlDown Then CopyText Else If ShiftDown Then InsertText Cairo.Clipboard.GetText
+    Case vbKeyInsert: If CtrlDown Then CopyText Else If ShiftDown Then PasteText
     Case vbKeyX: If CtrlDown And mSelLength > 0 Then CopyText: DeleteText
     Case vbKeyC: If CtrlDown Then CopyText
-    Case vbKeyV: If CtrlDown Then InsertText Cairo.Clipboard.GetText
+    Case vbKeyV: If CtrlDown Then PasteText
     Case vbKeyA
       If CtrlDown Then
         Me.SelectAll
@@ -592,6 +593,18 @@ Private Sub CopyText()
 
   Cairo.Clipboard.Clear
   Cairo.Clipboard.SetText SelText, vbCFText
+End Sub
+
+Private Sub PasteText()
+  Dim Text As String
+  Dim Cancel As Boolean
+  
+  Text = Cairo.Clipboard.GetText
+  
+  RaiseEvent BeforePaste(Text, Cancel)
+  If Cancel Then Exit Sub
+  
+  InsertText Text
 End Sub
 
 Private Sub DeleteText(Optional ByVal ToTheLeft As Boolean)
