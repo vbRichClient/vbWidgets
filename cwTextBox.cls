@@ -80,6 +80,7 @@ End Property
 Public Property Let Text(ByVal NewValue$)
   If NewValue = mText Then Exit Property
   mText = NewValue
+  mSelStart = 0
   mSelLength = 0
   CalcRows
   W.Refresh
