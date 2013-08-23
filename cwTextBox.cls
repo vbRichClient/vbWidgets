@@ -242,6 +242,13 @@ Public Property Let ScrollBars(ByVal NewValue As ScrollBarConstants)
   AdjustDimensions
 End Property
 
+Public Sub SelectAll()
+  mSelStart = 0
+  SelLength = Len(mText)
+  CaretPos = Len(mText)
+  CalcCoords CaretPos, CurRow, CurPos
+End Sub
+
 Public Function RowCount&()
   RowCount = mRowCount
 End Function
@@ -497,10 +504,7 @@ Dim NewPos As Long
     Case vbKeyV: If CtrlDown Then InsertText Cairo.Clipboard.GetText
     Case vbKeyA
       If CtrlDown Then
-        mSelStart = 0
-        SelLength = Len(mText)
-        CaretPos = Len(mText)
-        CalcCoords CaretPos, CurRow, CurPos
+        Me.SelectAll
       End If
 
     Case Else: Exit Sub
@@ -589,8 +593,7 @@ End Sub
 
 Private Sub W_GotFocus()
   If mAutoSelectAll Then
-     Me.SelStart = 0
-     Me.SelLength = Len(Me.Text)
+    Me.SelectAll
   End If
   Set tCaret = W.Root.CreateTimer(40, True)
   CaretInvertCounter = 0
