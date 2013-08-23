@@ -159,22 +159,22 @@ Public Property Let PassWordChar(ByVal NewValue$)
 End Property
 
 Public Property Get MaxLength() As Long
-   MaxLength = mMaxLength
+  MaxLength = mMaxLength
 End Property
 Public Property Let MaxLength(ByVal p_MaxLengthInCharsOrZeroForUnlimited As Long)
-   If p_MaxLengthInCharsOrZeroForUnlimited < 0 Then Err.Raise 5, , "Invalid maximum length. Must be >=0"
+  If p_MaxLengthInCharsOrZeroForUnlimited < 0 Then Err.Raise 5, , "Invalid maximum length. Must be >=0"
+  
+  mMaxLength = p_MaxLengthInCharsOrZeroForUnlimited
    
-   mMaxLength = p_MaxLengthInCharsOrZeroForUnlimited
-   
-   If mMaxLength > 0 Then
-      If Len(mText) > mMaxLength Then
-         Me.Text = Left$(mText, mMaxLength)
-         
-         If Right$(mText, 1) = vbCr Then
-            Me.Text = Left$(mText, Len(mText) - 1)
-         End If
-      End If
-   End If
+  If mMaxLength > 0 Then
+     If Len(mText) > mMaxLength Then
+        Me.Text = Left$(mText, mMaxLength)
+        
+        If Right$(mText, 1) = vbCr Then
+           Me.Text = Left$(mText, Len(mText) - 1)
+        End If
+     End If
+  End If
 End Property
 
 Public Property Get SelStart&()
@@ -208,10 +208,10 @@ Public Property Let AutoSelectAll(ByVal AutoSelectAll As Boolean)
 End Property
 
 Public Property Get HideSelection() As Boolean
-   HideSelection = mHideSelection
+  HideSelection = mHideSelection
 End Property
 Public Property Let HideSelection(ByVal HideSelection As Boolean)
-   mHideSelection = HideSelection
+  mHideSelection = HideSelection
 End Property
 
 Public Property Get Border() As Boolean
@@ -396,7 +396,7 @@ Private Sub VScrollBar_Scroll()
 End Sub
 
 Private Sub W_Click()
-   RaiseEvent Click
+  RaiseEvent Click
 End Sub
 
 Private Sub W_DblClick()
