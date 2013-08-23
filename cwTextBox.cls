@@ -27,7 +27,8 @@ Event KeyDown(KeyCode As Integer, Shift As Integer)
 Event KeyPress(KeyAscii As Integer)
 Event KeyUp(KeyCode As Integer, Shift As Integer)
 Event Validate(Cancel As Boolean)
- 
+Event MaxLengthViolation()
+
 Private dx As Single, dy As Single, Alpha As Single, Zoom As Single, dxx As Single, dyy As Single
 Private mText$, mPassWordChar$, mMultiLine As Boolean, mMaxRowWidth As Single, mVisibleRows&, mCueBannerText As String
 Private RowsCharOffset() As Long, RowsCharCount() As Long, mRowCount As Long
@@ -39,6 +40,7 @@ Private mRowHeight&, mLastTextHeight As Long
 Private mInnerSpace&, mAlignment As AlignmentConstants, mVCenter As Boolean
 Private mScrollerSize!, VSValue&, VSLargeChange&, VSMax&
 Private mLocked As Boolean
+Private mMaxLength As Long
 
 Private WithEvents T As cTimer, WithEvents tCaret As cTimer
 Attribute T.VB_VarHelpID = -1
@@ -151,6 +153,25 @@ End Property
 Public Property Let PassWordChar(ByVal NewValue$)
   mPassWordChar = Left$(NewValue, 1)
   AdjustDimensions
+End Property
+
+Public Property Get MaxLength() As Long
+   MaxLength = mMaxLength
+End Property
+Public Property Let MaxLength(ByVal p_MaxLengthInCharsOrZeroForUnlimited As Long)
+   If p_MaxLengthInCharsOrZeroForUnlimited < 0 Then Err.Raise 5, , "Invalid maximum length. Must be >=0"
+   
+   mMaxLength = p_MaxLengthInCharsOrZeroForUnlimited
+   
+   If mMaxLength > 0 Then
+      If Len(mText) > mMaxLength Then
+         Me.Text = Left$(mText, mMaxLength)
+         
+         If Right$(mText, 1) = vbCr Then
+            Me.Text = Left$(mText, Len(mText) - 1)
+         End If
+      End If
+   End If
 End Property
 
 Public Property Get SelStart&()
@@ -544,9 +565,19 @@ Private Sub W_KeyUp(KeyCode As Integer, Shift As Integer)
 End Sub
 
 Private Sub InsertText(NewText$)
+  Dim Buffer As String
+    
   If mLocked Then Exit Sub
   If Len(NewText) = 0 And mSelLength = 0 Then Exit Sub
   
+  If mMaxLength > 0 Then
+   If Len(NewText) + Len(mText) - mSelLength > mMaxLength Then
+     ' Can't insert text without violating MaxLength property value
+     RaiseEvent MaxLengthViolation
+     Exit Sub
+   End If
+  End If
+   
   mText = Left$(mText, mSelStart) & NewText & Mid$(mText, mSelStart + mSelLength + 1)
   CaretPos = mSelStart + Len(NewText)
   CalcRows
