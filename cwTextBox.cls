@@ -470,32 +470,34 @@ Dim NewPos As Long
       
     Case vbKeyHome
       If mMultiLine And (Not CtrlDown) Then
-         ' Move to beginning of current line
-         NewPos = InStrRev(mText, vbNewLine, CaretPos)
-         If NewPos <= 0 Then
-            NewPos = 0
-         Else
-            NewPos = NewPos + 1
-         End If
+        ' Move to beginning of current line
+        NewPos = InStrRev(mText, vbNewLine, CaretPos)
+        If NewPos <= 0 Then
+          NewPos = 0
+        Else
+          NewPos = NewPos + 1
+        End If
       Else
-         ' Move to beginning of text
-         NewPos = 0
+        ' Move to beginning of text
+        NewPos = 0
       End If
+      
       MoveCursor NewPos - CaretPos
     
     Case vbKeyEnd
       If mMultiLine And (Not CtrlDown) Then
-         ' Move to end of current line
-         NewPos = InStr(CaretPos + 1, mText, vbNewLine)
-         If NewPos <= 0 Then
-            NewPos = Len(mText)
-         Else
-            NewPos = NewPos - 1
-         End If
+        ' Move to end of current line
+        NewPos = InStr(CaretPos + 1, mText, vbNewLine)
+        If NewPos <= 0 Then
+          NewPos = Len(mText)
+        Else
+          NewPos = NewPos - 1
+        End If
       Else
-         ' Move to end of text
-         NewPos = Len(mText)
+        ' Move to end of text
+        NewPos = Len(mText)
       End If
+      
       MoveCursor NewPos - CaretPos
     
     Case vbKeyInsert: If CtrlDown Then CopyText Else If ShiftDown Then InsertText Cairo.Clipboard.GetText
