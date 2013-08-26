@@ -598,9 +598,9 @@ Private Sub DeleteText(Optional ByVal ToTheLeft As Boolean)
   If mSelLength = 0 Then
     If ToTheLeft And mSelStart > 0 Then
       If Mid$(mText, mSelStart, 1) = vbLf Then
-        SetSelection mSelStart - 2, 2
+        SetSelection mSelStart - 2, 2, , False
       Else
-        SetSelection mSelStart - 1, 1
+        SetSelection mSelStart - 1, 1, , False
       End If
     ElseIf Not ToTheLeft And mSelStart < Len(mText) Then
       If Mid$(mText, mSelStart + 1, 1) = vbCr Then mSelLength = 2 Else mSelLength = 1
@@ -1275,7 +1275,7 @@ Private Function SelectionWillChange(ByVal OldSelStart As Long, ByVal OldSelLeng
   End If
 End Function
 
-Private Sub SetSelection(ByVal ZeroBasedStartIndex As Long, ByVal Length As Long, Optional ByVal ReverseSelection As Boolean = False)
+Private Sub SetSelection(ByVal ZeroBasedStartIndex As Long, ByVal Length As Long, Optional ByVal ReverseSelection As Boolean = False, Optional ByVal Redraw As Boolean = True)
   Dim OldSelStart As Long
   Dim OldSelLength As Long
   Dim OldCaretPos As Long
@@ -1319,10 +1319,12 @@ Private Sub SetSelection(ByVal ZeroBasedStartIndex As Long, ByVal Length As Long
   
   CalcCoords CaretPos, CurRow, CurPos
   
-  EnsureVisible
+  If Redraw Then
+    EnsureVisible
+    
+    CaretInvertCounter = 0
+    W.Refresh
+  End If
   
-  CaretInvertCounter = 0
-  W.Refresh
-      
   RaiseEvent SelChanged(OldSelStart, OldSelLength, OldCaretPos)
 End Sub
