@@ -620,7 +620,11 @@ Private Sub MoveCursor(ByVal Offs&, Optional ByVal MoveType As eMoveCursorType =
   Dim FoundNonWhitespace As Boolean
   Dim SkipSelection As Boolean
   
-  If Offs = 0 Then Exit Sub   ' No movement, short-circuit
+   If Offs = 0 Then
+     If Me.SelLength = 0 Then
+       Exit Sub   ' No movement, short-circuit
+     End If
+   End If
   
   Select Case MoveType
   Case movecursor_Row
