@@ -167,13 +167,13 @@ Public Property Let MaxLength(ByVal p_MaxLengthInCharsOrZeroForUnlimited As Long
   mMaxLength = p_MaxLengthInCharsOrZeroForUnlimited
    
   If mMaxLength > 0 Then
-     If Len(mText) > mMaxLength Then
-        Me.Text = Left$(mText, mMaxLength)
-        
-        If Right$(mText, 1) = vbCr Then
-           Me.Text = Left$(mText, Len(mText) - 1)
-        End If
-     End If
+    If Len(mText) > mMaxLength Then
+      Me.Text = Left$(mText, mMaxLength)
+       
+      If Right$(mText, 1) = vbCr Then
+        Me.Text = Left$(mText, Len(mText) - 1)
+      End If
+    End If
   End If
 End Property
 
@@ -561,11 +561,11 @@ Private Sub InsertText(NewText$)
   If Len(NewText) = 0 And mSelLength = 0 Then Exit Sub
   
   If mMaxLength > 0 Then
-   If Len(NewText) + Len(mText) - mSelLength > mMaxLength Then
-     ' Can't insert text without violating MaxLength property value
-     RaiseEvent MaxLengthViolation
-     Exit Sub
-   End If
+    If Len(NewText) + Len(mText) - mSelLength > mMaxLength Then
+      ' Can't insert text without violating MaxLength property value
+      RaiseEvent MaxLengthViolation
+      Exit Sub
+    End If
   End If
    
   mText = Left$(mText, mSelStart) & NewText & Mid$(mText, mSelStart + mSelLength + 1)
