@@ -577,6 +577,7 @@ Private Sub InsertText(NewText$)
       
       ' Give the client UI a chance to inform the user that not all of the text could be inserted
       RaiseEvent MaxLengthViolation
+      W.RaiseBubblingEvent Me, "MaxLengthViolation"
       
       If NewLength <= 0 Then
         ' No room for any insert, short-circuit
@@ -609,6 +610,9 @@ Private Sub PasteText()
   RaiseEvent BeforePaste(Text, Cancel)
   If Cancel Then Exit Sub
   
+  W.RaiseBubblingEvent Me, "BeforePaste", Text, Cancel
+  If Cancel Then Exit Sub
+  
   InsertText Text
 End Sub
 
@@ -633,49 +637,51 @@ Private Sub MoveCursor(ByVal Offs&, Optional ByVal MoveType As eMoveCursorType =
   Dim LoopStart As Long
   Dim LoopEnd As Long
   Dim LoopStep As Long
-  Dim InWordBreak As Boolean
   Dim MoveCount As Long
   Dim FoundNonWhitespace As Boolean
-  Dim SkipSelection As Boolean
+  Dim WhitespaceCount As Long
+  Dim NewRow As Long
+  Dim NewPos As Long
+  Dim NewCaretPos As Long
   
-   If Offs = 0 Then
-     If Me.SelLength = 0 Then
-       Exit Sub   ' No movement, short-circuit
-     End If
-   End If
+  If Offs = 0 Then
+    If Me.SelLength = 0 Then
+      Exit Sub   ' No movement, short-circuit
+    End If
+  End If
   
   Select Case MoveType
   Case movecursor_Row
     ' Move cursor to line
-    CurRow = CurRow + Offs
-    If CurRow < 0 Then CurRow = 0 Else If CurRow > mRowCount - 1 Then CurRow = mRowCount - 1
-    If CurPos > Abs(RowsCharCount(CurRow)) Then CurPos = Abs(RowsCharCount(CurRow))
-    CalcCaretPos
+    NewRow = CurRow + Offs
+    NewPos = CurPos
+    If NewRow < 0 Then NewRow = 0 Else If NewRow > mRowCount - 1 Then NewRow = mRowCount - 1
+    If NewPos > Abs(RowsCharCount(NewRow)) Then NewPos = Abs(RowsCharCount(NewRow))
+    CalcCaretPos NewRow, NewPos, NewCaretPos
     
   Case movecursor_Char
     ' Move cursor to character
-    CaretPos = CaretPos + Offs
+    NewCaretPos = CaretPos + Offs
     If RowsCharCount(CurRow) <= 0 And Abs(RowsCharCount(CurRow)) = CurPos And Offs > 0 Then
-      CaretPos = CaretPos + 1 'linebreak-correction
+      NewCaretPos = NewCaretPos + 1 'linebreak-correction
     End If
     If CurRow > 0 And Offs < 0 Then 'look one row above for linebreaks
-      If RowsCharCount(CurRow - 1) <= 0 And CurPos = 0 Then CaretPos = CaretPos - 1
+      If RowsCharCount(CurRow - 1) <= 0 And CurPos = 0 Then NewCaretPos = NewCaretPos - 1
     End If
-    If CaretPos < 0 Then CaretPos = 0 Else If CaretPos > Len(mText) Then CaretPos = Len(mText)
-    CalcCoords CaretPos, CurRow, CurPos
+    If NewCaretPos < 0 Then NewCaretPos = 0 Else If NewCaretPos > Len(mText) Then NewCaretPos = Len(mText)
    
   Case movecursor_Word
     ' Move cursor to word break
+    NewCaretPos = CaretPos
+    
     If Offs < 0 Then
       ' Moving backwards
-      LoopStart = CaretPos
+      LoopStart = NewCaretPos
       LoopEnd = 1
       LoopStep = -1
-      Offs = Offs - 1   ' HACK: For backward movement, we'll move back to the end of an extra word,
-                        '       then move forward to find the beginning of the word
     Else
       ' Moving forwards
-      LoopStart = CaretPos + 1
+      LoopStart = NewCaretPos + 1
       LoopEnd = Len(mText)
       LoopStep = 1
     End If
@@ -684,24 +690,22 @@ Private Sub MoveCursor(ByVal Offs&, Optional ByVal MoveType As eMoveCursorType =
       Select Case Asc(Mid$(mText, i, 1))
       Case 32, 9, 10, 13  ' Space, Tab, CR or LF, i.e. Wordbreak character
         If (Offs < 0 And FoundNonWhitespace) Or (Offs > 0) Then
-          If Not InWordBreak Then
-            ' Signal that we are in a stretch of one or more whitespace characters
-            InWordBreak = True
-          End If
+          WhitespaceCount = WhitespaceCount + 1
         End If
         
       Case Else   ' Non-wordbreak character
-        If InWordBreak Then
+        If WhitespaceCount > 0 Then
           ' Set cursor position here
-          CaretPos = i - IIf(Offs < 0, 0, 1)
+          NewCaretPos = i - IIf(Offs < 0, 0, 1)
           
           MoveCount = MoveCount + LoopStep
-          If MoveCount = Offs Then
+          If MoveCount = IIf(Offs < 0, -1, 1) Or NewCaretPos = 0 Then
             ' We've moved the requisite number of words, so short-circuit the loop
-            FoundNonWhitespace = False
-              
+            NewCaretPos = NewCaretPos + IIf(Offs < 0, WhitespaceCount, 0)
             Exit For
           End If
+          
+          WhitespaceCount = 0
         End If
         
         FoundNonWhitespace = True
@@ -711,40 +715,27 @@ Private Sub MoveCursor(ByVal Offs&, Optional ByVal MoveType As eMoveCursorType =
     If i = 0 And Offs < 0 Then
       ' We didn't find a word break before hitting the beginning of the text in backward search
       ' So move the caret to the beginning of the text
-      CaretPos = 0
+      NewCaretPos = 0
     
     ElseIf i > Len(mText) And Offs > 0 Then
       ' We didn't find a word break before hitting the end of the text in forward search
       ' So move the caret to the end of the text
-      CaretPos = Len(mText)
+      NewCaretPos = Len(mText)
     End If
-    
-    CalcCoords CaretPos, CurRow, CurPos
-  
-    If Offs < 0 Then
-      ' HACK: for backward movement
-      If CaretPos > 0 Then
-         ' Not at beginning of text box, so move forward one word
-         SkipSelection = True
-         MoveCursor 1, movecursor_Word
-      End If
-   End If
-  
+      
   Case Else
     Err.Raise 5, , "Unknown cursor move type: " & MoveType
     
   End Select
   
-  If Not SkipSelection Then
-    If ShiftDown Then
-      If SelBegin < CaretPos Then
-        SetSelection SelBegin, Abs(SelBegin - CaretPos)
-      Else
-        SetSelection CaretPos, Abs(SelBegin - CaretPos), True
-      End If
+  If ShiftDown Then
+    If SelBegin < NewCaretPos Then
+      SetSelection SelBegin, Abs(SelBegin - NewCaretPos)
     Else
-      SetSelection CaretPos, 0
+      SetSelection NewCaretPos, Abs(SelBegin - NewCaretPos), True
     End If
+  Else
+    SetSelection NewCaretPos, 0
   End If
 End Sub
 
@@ -812,12 +803,6 @@ Dim i&, dy&
     Else 'handling without scroll-timer-support
       Set T = Nothing
       CalcCaretPosFromMouseCoords x, y
-      
-      If CaretPos < SelBegin Then
-         SetSelection CaretPos, Abs(SelBegin - CaretPos), True
-      Else
-         SetSelection SelBegin, Abs(SelBegin - CaretPos)
-      End If
     End If
   End If
 End Sub
@@ -844,7 +829,14 @@ End Sub
 Private Sub CalcCaretPosFromMouseCoords(ByVal x As Single, ByVal y As Single)
 Dim pS&, Ext As Single, Ext2 As Single, MCC As cCairoContext
 Dim BorderOffs&, TWidth As Single, AlgnOffs As Single, VOffs As Single
- 
+Dim NewRow As Long
+Dim NewRowPos As Long
+Dim NewCaretPos As Long
+
+  NewRow = CurRow
+  NewRowPos = CurPos
+  NewCaretPos = CaretPos
+
   BorderOffs = mInnerSpace
   If mBorder Then BorderOffs = BorderOffs + 1
   
@@ -861,38 +853,42 @@ Dim BorderOffs&, TWidth As Single, AlgnOffs As Single, VOffs As Single
   y = y - VOffs - mInnerSpace
   
   If y > 0 Then
-    CurRow = (y - BorderOffs) \ RowHeight + VSValue
+    NewRow = (y - BorderOffs) \ RowHeight + VSValue
   Else
-    CurRow = (y - BorderOffs - RowHeight) \ RowHeight + VSValue
+    NewRow = (y - BorderOffs - RowHeight) \ RowHeight + VSValue
   End If
-  If CurRow < 0 Then CurRow = 0 Else If CurRow > mRowCount - 1 Then CurRow = mRowCount - 1
+  If NewRow < 0 Then NewRow = 0 Else If NewRow > mRowCount - 1 Then NewRow = mRowCount - 1
   If (mScrollBars And vbHorizontal) <> 0 Or mMultiLine = False Then
     x = x + HScrollX
   End If
  
   If x < BorderOffs Then x = BorderOffs
   
-  pS = StrPtr(mText) + RowsCharOffset(CurRow)
+  pS = StrPtr(mText) + RowsCharOffset(NewRow)
   
-
   Set MCC = SetCurFont
     'calculate Alignment-Offset
     If Alignment Then
-      TWidth = MCC.GetTextExtentPtr(pS, Abs(RowsCharCount(CurRow)))
+      TWidth = MCC.GetTextExtentPtr(pS, Abs(RowsCharCount(NewRow)))
       AlgnOffs = GetAlignOffset(TWidth)
     End If
     x = x - AlgnOffs - BorderOffs
     
-    CurPos = MCC.GetCharsFittingExtentPtr(pS, Abs(RowsCharCount(CurRow)), x)
+    NewRowPos = MCC.GetCharsFittingExtentPtr(pS, Abs(RowsCharCount(NewRow)), x)
 
-    If CurPos < Abs(RowsCharCount(CurRow)) Then 'let's check, if we are in the middle of two adjacent Chars
-      Ext = MCC.GetTextExtentPtr(pS, CurPos)
-      Ext2 = MCC.GetTextExtentPtr(pS, CurPos + 1)
-      If x > (Ext + Int((Ext2 - Ext - 3 / W.Zoom) / 2)) Then CurPos = CurPos + 1
+    If NewRowPos < Abs(RowsCharCount(NewRow)) Then 'let's check, if we are in the middle of two adjacent Chars
+      Ext = MCC.GetTextExtentPtr(pS, NewRowPos)
+      Ext2 = MCC.GetTextExtentPtr(pS, NewRowPos + 1)
+      If x > (Ext + Int((Ext2 - Ext - 3 / W.Zoom) / 2)) Then NewRowPos = NewRowPos + 1
     End If
     
-    CalcCaretPos
- 
+    CalcCaretPos NewRow, NewRowPos, NewCaretPos
+    If NewCaretPos < SelBegin Then
+      SetSelection NewCaretPos, Abs(SelBegin - NewCaretPos), True
+    Else
+      SetSelection SelBegin, Abs(SelBegin - NewCaretPos)
+    End If
+  
   If Not InsideDraw Then MCC.Restore
 End Sub
 
@@ -1238,20 +1234,26 @@ Dim i&, CPos&, CCount&, CrLfOffs&
   End If
 End Sub
 
-Private Sub CalcCaretPos()
+Private Sub CalcCaretPos(ByVal Row As Long, ByVal RowPos As Long, NewCaretPos As Long)
 Dim i&, CPos&, CCount&, CrLfOffs&
-  For i = 0 To CurRow - 1
+  
+  For i = 0 To Row - 1
     CCount = RowsCharCount(i)
     If CCount > 0 Then CrLfOffs = 0 Else CrLfOffs = 2: CCount = -CCount 'vbCrLf-detection
     CPos = CPos + CCount + CrLfOffs
     If i >= mRowCount - 1 Then Exit For
   Next i
-  If CurPos > Abs(RowsCharCount(i)) Then
-    CaretPos = CPos + Abs(RowsCharCount(i))
+  If RowPos > Abs(RowsCharCount(i)) Then
+    NewCaretPos = CPos + Abs(RowsCharCount(i))
   Else
-    CaretPos = CPos + CurPos
+    NewCaretPos = CPos + RowPos
   End If
-  If CaretPos > Len(mText) Then CaretPos = Len(mText)
+  
+  If NewCaretPos < 0 Then
+    NewCaretPos = 0
+  Else
+    If NewCaretPos > Len(mText) Then NewCaretPos = Len(mText)
+  End If
 End Sub
 
 Private Function SetCurFont(Optional MCC As cCairoContext) As cCairoContext
@@ -1318,6 +1320,9 @@ Private Sub SetSelection(ByVal ZeroBasedStartIndex As Long, ByVal Length As Long
   RaiseEvent BeforeSelChange(ZeroBasedStartIndex, Length, ReverseSelection, Cancel)
   If Cancel Then Exit Sub
   
+  W.RaiseBubblingEvent Me, "BeforeSelChange", ZeroBasedStartIndex, Length, ReverseSelection, Cancel
+  If Cancel Then Exit Sub
+  
   ' Renormalize and retest for selection change in case client changed ByRef variables
   NormalizeSelectionIndexes ZeroBasedStartIndex, Length
   If Not SelectionWillChange(OldSelStart, OldSelLength, OldCaretPos, ZeroBasedStartIndex, Length, ReverseSelection) Then
@@ -1345,4 +1350,5 @@ Private Sub SetSelection(ByVal ZeroBasedStartIndex As Long, ByVal Length As Long
   End If
   
   RaiseEvent SelChanged(OldSelStart, OldSelLength, OldCaretPos)
+  W.RaiseBubblingEvent Me, "SelChanged", OldSelStart, OldSelLength, OldCaretPos
 End Sub
