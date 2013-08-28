@@ -556,15 +556,33 @@ End Sub
 
 Private Sub InsertText(NewText$)
   Dim Buffer As String
-    
+  Dim NewLength As Long
+  
   If mLocked Then Exit Sub
   If Len(NewText) = 0 And mSelLength = 0 Then Exit Sub
   
   If mMaxLength > 0 Then
     If Len(NewText) + Len(mText) - mSelLength > mMaxLength Then
       ' Can't insert text without violating MaxLength property value
+      ' See if we can do a partial insert
+      NewLength = mMaxLength - Len(mText) - mSelLength
+      
+      If NewLength > 0 Then
+        NewText = Left$(NewText, NewLength)
+        If Right$(NewText, 1) = vbCr Then
+          ' Remove orphaned CR from chopped CRLF
+          NewText = Left$(NewText, Len(NewText) - 1)
+        End If
+      End If
+      
+      ' Give the client UI a chance to inform the user that not all of the text could be inserted
       RaiseEvent MaxLengthViolation
-      Exit Sub
+      
+      If NewLength <= 0 Then
+        ' No room for any insert, short-circuit
+        Exit Sub
+      End If
+      
     End If
   End If
    
