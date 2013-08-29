@@ -29,7 +29,7 @@ Event KeyUp(KeyCode As Integer, Shift As Integer)
 Event Validate(Cancel As Boolean)
 Event MaxLengthViolation() ' An insert operation was cancelled because it would violate the MaxLength property value
 Event BeforePaste(TextToPaste As String, Cancel As Boolean)
-Event BeforeSelChange(NewSelStart As Long, NewSelLength As Long, ReverseSelection As Boolean, Cancel As Boolean)
+Event BeforeSelChange(NewSelStart As Long, NewSelLength As Long, SelBackwards As Boolean, Cancel As Boolean)
 Event SelChanged(ByVal OldSelStart As Long, ByVal OldSelLength As Long, ByVal OldCaretPosition As Long)
 
 Private dx As Single, dy As Single, Alpha As Single, Zoom As Single, dxx As Single, dyy As Single
@@ -1280,13 +1280,13 @@ Private Sub NormalizeSelectionIndexes(ZeroBasedStartIndex As Long, Length As Lon
   If ZeroBasedStartIndex + Length > Len(mText) Then Length = Len(mText) - ZeroBasedStartIndex
 End Sub
 
-Private Function SelectionWillChange(ByVal OldSelStart As Long, ByVal OldSelLength As Long, ByVal OldCaretPos As Long, ByVal NewSelStart As Long, ByVal NewSelLength As Long, ByVal ReverseSelection As Boolean) As Boolean
+Private Function SelectionWillChange(ByVal OldSelStart As Long, ByVal OldSelLength As Long, ByVal OldCaretPos As Long, ByVal NewSelStart As Long, ByVal NewSelLength As Long, ByVal SelBackwards As Boolean) As Boolean
   SelectionWillChange = True ' Assume selection will change
   
   If (OldSelStart = NewSelStart) Then
     If (OldSelLength = NewSelLength) Then
-      If (((OldCaretPos = OldSelStart) And ReverseSelection) Or _
-         ((OldCaretPos = OldSelStart + OldSelLength) And Not ReverseSelection)) Then
+      If (((OldCaretPos = OldSelStart) And SelBackwards) Or _
+         ((OldCaretPos = OldSelStart + OldSelLength) And Not SelBackwards)) Then
          
         ' Select will not change
         SelectionWillChange = False
@@ -1295,7 +1295,7 @@ Private Function SelectionWillChange(ByVal OldSelStart As Long, ByVal OldSelLeng
   End If
 End Function
 
-Private Sub SetSelection(ByVal ZeroBasedStartIndex As Long, ByVal Length As Long, Optional ByVal ReverseSelection As Boolean = False, Optional ByVal Redraw As Boolean = True)
+Private Sub SetSelection(ByVal ZeroBasedStartIndex As Long, ByVal Length As Long, Optional ByVal SelBackwards As Boolean = False, Optional ByVal Redraw As Boolean = True, Optional ByVal AllowCancellation As Boolean = True)
   Dim OldSelStart As Long
   Dim OldSelLength As Long
   Dim OldCaretPos As Long
@@ -1311,28 +1311,30 @@ Private Sub SetSelection(ByVal ZeroBasedStartIndex As Long, ByVal Length As Long
   ' Normalize the passed selection indexes to fit within text boundaries
   NormalizeSelectionIndexes ZeroBasedStartIndex, Length
   ' Test if selection will actually change based on passed values - if not, then short-circuit
-  If Not SelectionWillChange(OldSelStart, OldSelLength, OldCaretPos, ZeroBasedStartIndex, Length, ReverseSelection) Then
+  If Not SelectionWillChange(OldSelStart, OldSelLength, OldCaretPos, ZeroBasedStartIndex, Length, SelBackwards) Then
     Exit Sub
   End If
   
-  ' Selection will be changed based on currently passed values
-  ' Give client a chance to modify/cancel the selection
-  RaiseEvent BeforeSelChange(ZeroBasedStartIndex, Length, ReverseSelection, Cancel)
-  If Cancel Then Exit Sub
-  
-  W.RaiseBubblingEvent Me, "BeforeSelChange", ZeroBasedStartIndex, Length, ReverseSelection, Cancel
-  If Cancel Then Exit Sub
-  
+  If AllowCancellation Then
+    ' Selection will be changed based on currently passed values
+    ' Give client a chance to modify/cancel the selection
+    RaiseEvent BeforeSelChange(ZeroBasedStartIndex, Length, SelBackwards, Cancel)
+    If Cancel Then Exit Sub
+    
+    W.RaiseBubblingEvent Me, "BeforeSelChange", ZeroBasedStartIndex, Length, SelBackwards, Cancel
+    If Cancel Then Exit Sub
+  End If
+ 
   ' Renormalize and retest for selection change in case client changed ByRef variables
   NormalizeSelectionIndexes ZeroBasedStartIndex, Length
-  If Not SelectionWillChange(OldSelStart, OldSelLength, OldCaretPos, ZeroBasedStartIndex, Length, ReverseSelection) Then
+  If Not SelectionWillChange(OldSelStart, OldSelLength, OldCaretPos, ZeroBasedStartIndex, Length, SelBackwards) Then
     Exit Sub
   End If
   
   mSelStart = ZeroBasedStartIndex
   mSelLength = Length
   
-  If ReverseSelection Then
+  If SelBackwards Then
     CaretPos = mSelStart
     SelBegin = mSelStart + mSelLength
   Else
