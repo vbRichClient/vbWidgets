@@ -30,7 +30,6 @@ Private mAllowEdit As Boolean, mAllowAddNew As Boolean, mAllowDelete As Boolean
 
 Private Sub Class_Initialize()
   Set VList = New cwVList
-      VList.RowHeight = 20
       VList.ListCount = 100
       VList.HeaderHeight = 24
       VList.RowSelectorWidth = 24

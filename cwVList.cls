@@ -439,6 +439,7 @@ End Sub
 
 Private Sub TScroll_Timer()
 Dim DoRefresh As Boolean
+
   If VScrollBar.Widget.Visible Then
     If TScroll.Tag = "Up" Then
       VScrollBar.Widget.LockRefresh = True
@@ -662,7 +663,7 @@ Dim NewSel&, i&, DoRefresh As Boolean
       TScroll.Tag = "Up": TScroll.Interval = i: If Not TScroll.Enabled Then TScroll.Enabled = True
     ElseIf y - mRowHeight * mVisibleRows > 0 Then
       i = 300 - (y - mRowHeight * mVisibleRows) * 10: If i < 10 Then i = 10
-      TScroll.Tag = "Down": TScroll.Interval = i: If Not TScroll.Enabled Then TScroll.Enabled = True
+      TScroll.Tag = "Down": TScroll.Interval = i: If W.DragDetect And Not TScroll.Enabled Then TScroll.Enabled = True
     End If
     If HScrollBar.Widget.Visible Then
       If x <= 1 Then
