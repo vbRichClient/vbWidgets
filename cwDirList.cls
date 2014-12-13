@@ -83,6 +83,14 @@ End Function
 Public Sub ReScan()
   Path = mPath
 End Sub
+ 
+Public Property Get SelectedPath() As String
+Dim Key, Value
+  If mDS Is Nothing Then Exit Property
+  If Not mDS.TreeElementInfoByVisibleIndex(ListIndex, Key, Value) Then Exit Property
+ 
+  SelectedPath = ValidatePath(mDS.TreeNodeFullPath(Value))
+End Sub
 
 Public Property Get Path() As String
   Path = mPath & "\"
