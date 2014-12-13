@@ -24,20 +24,20 @@ Attribute VList.VB_VarHelpID = -1
 Public DoubleClickExpandsNodes As Boolean
 
 Private mDataSourceKey As String, WithEvents mDS As cDataSource, WithEvents tmrDecouple As cTimer
-Attribute mDataSourceKey.VB_VarHelpID = -1
 Attribute mDS.VB_VarHelpID = -1
 Attribute tmrDecouple.VB_VarHelpID = -1
 Private WithEvents W As cWidgetBase
 Attribute W.VB_VarHelpID = -1
 
 Private mCaption As String
-Private mLastHoverIndex As Long, mLastArrowSize As Single, mLastArrowXOffs As Single, mInArrowArea As Boolean
+Private mLastHoverIndex As Long, mLastArrowSize As Single, mLastArrowXOffs As Single, mInArrowArea As Boolean, mLastMouseDownHoverIndex As Long
 
 Private Sub Class_Initialize()
   Set VList = New cwVList 'the Widget-Instance, to inherit from
       VList.RowHeight = 21
       VList.ListCount = 0
       VList.AllowLeftRightKeys = False
+      
   'the following is some kind of "visual inheritance", since we use the already existent 'W'
   'from the VList, instead of creating our own, new 'W'-instance per: Set W = Cairo.WidgetBase
   Set W = VList.Widget
@@ -156,6 +156,7 @@ Dim DoRaise As Boolean
       mDS.AbsolutePosition = VList.ListIndex + 1
       DoRaise = True
     End If
+
 '    If mDS.Count > 0 Then
 '      If VList.ListIndex = -1 And mDS.AbsolutePosition <> VList.ListIndex Then
 '        mDS.MoveFirst
@@ -183,8 +184,13 @@ End Sub
 
 Private Sub VList_MouseMoveOnListItem(ByVal HoverIndex As Long, ByVal RelX As Single, ByVal RelY As Single)
 Dim InArrowArea As Boolean
-  mLastHoverIndex = HoverIndex
+  If mLastHoverIndex <> HoverIndex Then
+    mInArrowArea = False
+    mLastHoverIndex = HoverIndex
+    W.Refresh
+  End If
   InArrowArea = (RelX > mLastArrowXOffs - 4 And RelX < mLastArrowXOffs + mLastArrowSize + 4)
+'  Debug.Print HoverIndex, InArrowArea
   If InArrowArea <> mInArrowArea Then
     mInArrowArea = InArrowArea
     W.Refresh
@@ -225,8 +231,12 @@ Dim W As cWidgetBase: Set W = Sender.Widget
   End If
 End Sub
 
-Private Sub W_MouseDown(Button As Integer, Shift As Integer, ByVal x As Single, ByVal y As Single)
-  If mInArrowArea Then ExpandOrCollapse VList.HoverIndex
+Private Sub W_MouseDown(Button As Integer, Shift As Integer, ByVal X As Single, ByVal Y As Single)
+  mLastMouseDownHoverIndex = VList.HoverIndex
+End Sub
+
+Private Sub W_MouseUp(Button As Integer, Shift As Integer, ByVal X As Single, ByVal Y As Single)
+  If mInArrowArea And mLastMouseDownHoverIndex = VList.HoverIndex Then ExpandOrCollapse VList.HoverIndex
 End Sub
 
 Private Sub W_KeyDown(KeyCode As Integer, Shift As Integer)
@@ -277,4 +287,6 @@ Dim Key, Value
 '  If Value.Count = 0 Then Exit Sub
   If mDS.TreeNodeIsExpanded(Value) Then mDS.TreeNodeCollapse Value Else mDS.TreeNodeExpand Value
 End Sub
+
+
 
