@@ -133,7 +133,6 @@ Public Property Let TextShadowColor(ByVal NewValue As Long)
   W.Refresh
 End Property
 
-
 Private Sub W_Paint(CC As cCairoContext, ByVal xAbs As Single, ByVal yAbs As Single, ByVal dx_Aligned As Single, ByVal dy_Aligned As Single, UserObj As Object)
   Alpha = W.AlphaInherited
   dx = dx_Aligned
@@ -165,7 +164,7 @@ Dim i&
       CC.TranslateDrawings 0.5, 0.5
       CC.DrawText mBorderWidth, mBorderWidth, dx, dy, mCaption, Not mWordWrap, mAlignment, mInnerSpace, mVAlign, , , True
       CC.SetLineJoin CAIRO_LINE_JOIN_ROUND
-      CC.SetLineCap CAIRO_LINE_CAP_ROUND
+      CC.SetLineCap Cairo_LINE_CAP_ROUND
       
       For i = 0 To 1 'this loop re-renders always on the same path (ensured by the True-Param in the .Stroke)
         CC.SetLineWidth 4 - 2 * i 'but with decreasing linewidth

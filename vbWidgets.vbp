@@ -35,6 +35,7 @@ Class=cwMenuBar; cwMenuBar.cls
 Class=cwToolBarItem; cwToolBarItem.cls
 Class=cwDropDownList; cwDropDownList.cls
 Class=cwProgressBar; cwProgressBar.cls
+Class=cUndoRedo; cUndoRedo.cls
 Startup="Sub Main"
 HelpFile=""
 Title="vbWidgets"
