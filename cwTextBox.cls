@@ -43,17 +43,12 @@ Attribute HScrollBar.VB_VarHelpID = -1
 
 Private InsideDraw As Boolean
 Private mUndoDepth As Byte, HScrollX&, HScrollMax&
+Private mTextShadowOffsetX As Single, mTextShadowOffsetY As Single, mTextShadowColor As Long
 
 Public UserdefinedHovering As Boolean
 
 Private WithEvents W As cWidgetBase
 Attribute W.VB_VarHelpID = -1
-Public Property Get Widget() As cWidgetBase
-  Set Widget = W
-End Property
-Public Property Get Widgets() As cWidgets
-  Set Widgets = W.Widgets
-End Property
 
 Private Sub Class_Initialize()
   ReDim RowsCharOffset(0)
@@ -61,6 +56,8 @@ Private Sub Class_Initialize()
   
   mInnerSpace = 1
   mBorder = True
+  mTextShadowColor = -1 '-1 Color-Values are (as always) treated as "no color"
+
   Zoom = 1
   
   Set W = Cairo.WidgetBase
@@ -72,10 +69,17 @@ Private Sub Class_Initialize()
   mScrollerSize = Cairo.Theme.GetScrollerSize
 End Sub
 
-Public Property Get Text$()
+Public Property Get Widget() As cWidgetBase
+  Set Widget = W
+End Property
+Public Property Get Widgets() As cWidgets
+  Set Widgets = W.Widgets
+End Property
+
+Public Property Get Text() As String
   Text = mText
 End Property
-Public Property Let Text(ByVal NewValue$)
+Public Property Let Text(ByVal NewValue As String)
   If NewValue = mText Then Exit Property
   mText = NewValue
   mSelLength = 0
@@ -85,10 +89,10 @@ Public Property Let Text(ByVal NewValue$)
   W.RaiseBubblingEvent Me, "Change"
 End Property
 
-Public Property Get CueBannerText$()
+Public Property Get CueBannerText() As String
   CueBannerText = mCueBannerText
 End Property
-Public Property Let CueBannerText(ByVal NewValue$)
+Public Property Let CueBannerText(ByVal NewValue As String)
   If NewValue = mCueBannerText Then Exit Property
   mCueBannerText = NewValue
   W.Refresh
@@ -185,6 +189,31 @@ End Property
 Public Property Let Border(ByVal NewValue As Boolean)
   mBorder = NewValue
   AdjustDimensions
+End Property
+
+Public Property Get TextShadowOffsetX() As Single
+  TextShadowOffsetX = mTextShadowOffsetX
+End Property
+Public Property Let TextShadowOffsetX(ByVal NewValue As Single)
+  If mTextShadowOffsetX = NewValue Then Exit Property
+  mTextShadowOffsetX = NewValue
+  W.Refresh
+End Property
+Public Property Get TextShadowOffsetY() As Single
+  TextShadowOffsetY = mTextShadowOffsetY
+End Property
+Public Property Let TextShadowOffsetY(ByVal NewValue As Single)
+  If mTextShadowOffsetY = NewValue Then Exit Property
+  mTextShadowOffsetY = NewValue
+  W.Refresh
+End Property
+Public Property Get TextShadowColor() As Long
+  TextShadowColor = mTextShadowColor
+End Property
+Public Property Let TextShadowColor(ByVal NewValue As Long)
+  If mTextShadowColor = NewValue Then Exit Property
+  mTextShadowColor = NewValue
+  W.Refresh
 End Property
 
 Public Property Get MultiLine() As Boolean
@@ -357,16 +386,16 @@ Private Sub VScrollBar_Scroll()
 End Sub
 
 Private Sub W_DblClick()
-Dim i&, S$, WLeft%, WRight%, W%, PLeft&, PRight&
+Dim i&, s$, WLeft%, WRight%, W%, PLeft&, PRight&
  
-  S = Mid$(mText, RowsCharOffset(CurRow) \ 2 + 1, Abs(RowsCharCount(CurRow)))
+  s = Mid$(mText, RowsCharOffset(CurRow) \ 2 + 1, Abs(RowsCharCount(CurRow)))
   
-  If Len(S) = 0 Then Exit Sub
+  If Len(s) = 0 Then Exit Sub
   If CurPos > 0 Then
-    WLeft = AscW(Mid$(S, CurPos, 1))
+    WLeft = AscW(Mid$(s, CurPos, 1))
   End If
-  If CurPos < Len(S) Then
-    WRight = AscW(Mid$(S, CurPos + 1, 1))
+  If CurPos < Len(s) Then
+    WRight = AscW(Mid$(s, CurPos + 1, 1))
   End If
   If WRight > WLeft Then W = WRight Else W = WLeft 'get the maximum
   If W <= 32 Then Exit Sub 'do nothing
@@ -374,26 +403,26 @@ Dim i&, S$, WLeft%, WRight%, W%, PLeft&, PRight&
 '  If CurPos = Len(S) Then CurPos = CurPos - 1: mSelStart = mSelStart - 1
   If (W < 48 Or (W = 58)) And Not (W > 32 And W < 39 And W <> 34) Then  'non alphanumeric chars to expand
     For i = CurPos - 1 To 0 Step -1
-      W = AscW(Mid$(S, i + 1, 1))
+      W = AscW(Mid$(s, i + 1, 1))
       If W <= 32 Or (W >= 48 And Not ((W > 57 And W < 65) Or (W > 90 And W < 97) Or W > 122)) Then Exit For
     Next i
     PLeft = i + 1: If PLeft < 0 Then PLeft = 0
-    For i = CurPos To Len(S) - 1
-      W = AscW(Mid$(S, i + 1, 1))
+    For i = CurPos To Len(s) - 1
+      W = AscW(Mid$(s, i + 1, 1))
       If W <= 32 Or (W >= 48 And Not ((W > 57 And W < 65) Or (W > 90 And W < 97) Or W > 122)) Then Exit For
     Next i
-    PRight = i: If PRight > Len(S) Then PRight = Len(S)
+    PRight = i: If PRight > Len(s) Then PRight = Len(s)
   Else 'chars in the alphanumeric-range are expanded
     For i = CurPos - 1 To 0 Step -1
-      W = AscW(Mid$(S, i + 1, 1))
+      W = AscW(Mid$(s, i + 1, 1))
       If (W < 48 Or ((W > 57 And W < 65) Or (W > 90 And W < 97) Or W > 122)) And Not (W > 32 And W < 39 And W <> 34) Then Exit For
     Next i
     PLeft = i + 1: If PLeft < 0 Then PLeft = 0
-    For i = CurPos To Len(S) - 1
-      W = AscW(Mid$(S, i + 1, 1))
+    For i = CurPos To Len(s) - 1
+      W = AscW(Mid$(s, i + 1, 1))
       If (W < 48 Or ((W > 57 And W < 65) Or (W > 90 And W < 97) Or W > 122)) And Not (W > 32 And W < 39 And W <> 34) Then Exit For
     Next i
-    PRight = i: If PRight > Len(S) Then PRight = Len(S)
+    PRight = i: If PRight > Len(s) Then PRight = Len(s)
   End If
   
   If PLeft < CurPos Then mSelStart = mSelStart - (CurPos - PLeft)
@@ -483,7 +512,7 @@ Private Sub CopyText()
   If mSelLength = 0 Or Len(mPassWordChar) > 0 Then Exit Sub
 
   Cairo.Clipboard.Clear
-  Cairo.Clipboard.SetText SelText, vbCFText
+  Cairo.Clipboard.SetText SelText
 End Sub
 
 Private Sub DeleteText(Optional ByVal ToTheLeft As Boolean)
@@ -901,6 +930,26 @@ Static LastTextHeight&
     If Len(mPassWordChar) Then
       CC.TextOutPtr x1 + AlgnOffs, y1, StrPtr(String(Abs(RowsCharCount(i)), mPassWordChar)), Abs(RowsCharCount(i))
     Else
+      If mTextShadowColor <> -1 Then
+        'note the last Param, which only ensures "a Path" (no Pixel-Rendering yet)
+        CC.Save
+          CC.TranslateDrawings mTextShadowOffsetX, mTextShadowOffsetY
+          CC.TranslateDrawings 0.5, 0.5
+          CC.TextOutPtr x1 + AlgnOffs, y1, pS + RowsCharOffset(i), Abs(RowsCharCount(i)), , , True
+          CC.SetLineJoin CAIRO_LINE_JOIN_ROUND
+          CC.SetLineCap CAIRO_LINE_CAP_ROUND
+          Dim l  As Long
+          For l = 0 To 1  'this loop re-renders always on the same path (ensured by the True-Param in the .Stroke)
+            CC.SetLineWidth 4 - 2 * l  'but with decreasing linewidth
+            CC.SetSourceColor mTextShadowColor, 0.15 + l * 0.05   'and slightly increasing Opacity
+            CC.Stroke True
+          Next
+          
+          CC.SetLineWidth 1
+          CC.SetSourceColor mTextShadowColor, 0.2
+          CC.Stroke
+        CC.Restore
+      End If
       CC.TextOutPtr x1 + AlgnOffs, y1, pS + RowsCharOffset(i), Abs(RowsCharCount(i))
     End If
   
@@ -918,7 +967,7 @@ Static LastTextHeight&
   
         CC.SetLineWidth 1, True '<- last param ensures a rounded, pixel-aligned LineWidth
         CC.SetLineCap Cairo_LINE_CAP_BUTT
-        CC.SetSourceColor vbBlack, Alpha
+        CC.SetSourceColor W.BorderColor, Alpha * 1.2, 0.85
           x2 = Int((Ext + x1 + AlgnOffs + 0.5) * Zoom) / Zoom 'pixel-aligned x-Offset
           CC.DrawLine x2, y1 - 0.5, x2, y1 + RowHeight - 0.5, True
         CC.Stroke
