@@ -298,12 +298,12 @@ Dim Pat As cCairoPattern, Color As Long
     CC.Rectangle ButtonSize, 0, dx - 2 * ButtonSize, dy, True
     CC.Fill , Pat
 
-    CC.SetSourceColor Color, Alpha, 1
-      CC.DrawLine ButtonSize + 1, 0, dx - ButtonSize - 1, 0
+    CC.SetSourceColor Color, Alpha * 0.8, 1
+      CC.DrawLine ButtonSize + 1, 0, dx - ButtonSize - 1, 0, True
     CC.Stroke
     
-    CC.SetSourceColor Color, Alpha, 1.09
-      CC.DrawLine ButtonSize + 1, dy - 1, dx - ButtonSize - 1, dy - 1
+    CC.SetSourceColor Color, Alpha * 0.8, 1.09
+      CC.DrawLine ButtonSize + 1, dy - 1, dx - ButtonSize - 1, dy - 1, True
     CC.Stroke
   End If
 End Sub
