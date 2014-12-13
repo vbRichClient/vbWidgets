@@ -13,6 +13,9 @@ Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 Option Explicit
 
+Event Click(Sender As cwToolBarItem)
+Event ArrowClick(Sender As cwToolBarItem)
+
 Public Enum DropDownArrowType
   ddNone = 0
   ddCrumbBar = 1
@@ -69,13 +72,20 @@ Dim xOffs As Single, Width As Single, TxtWidth As Double
     End If
   End If
   If ArrowType Then Width = Width + 15
-  Widgets.Add NewItem, Key, 2 + xOffs, 3, Width, dy - 5
+  Widgets.Add NewItem, Key, 1 + xOffs, 3, Width, dy - 5
   Set AddItem = NewItem
 End Function
 
 Private Sub W_AddedToHierarchy()
   dx = W.Width
   dy = W.Height
+End Sub
+
+Private Sub W_BubblingEvent(Sender As Object, EventName As String, P1 As Variant, P2 As Variant, P3 As Variant, P4 As Variant, P5 As Variant, P6 As Variant, P7 As Variant)
+  If TypeOf Sender Is cwToolBarItem And Left(EventName, 2) <> "W_" Then 'reflect the two normal Events of a cwToolBarItem
+    If EventName = "Click" Then RaiseEvent Click(Sender)
+    If EventName = "ArrowClick" Then RaiseEvent ArrowClick(Sender)
+  End If
 End Sub
 
 Private Sub W_ContainerResize()
@@ -93,17 +103,16 @@ End Sub
 Private Sub Draw(CC As cCairoContext)
 Dim Pat As cCairoPattern
   Set Pat = Cairo.CreateLinearPattern(0, 0, 0, dy)
-      Pat.AddColorStop 0, W.BackColor, , 1.11
-      Pat.AddColorStop 1, W.BackColor, , 0.93
+      Pat.AddColorStop 0, W.BackColor, Alpha, 1.11
+      Pat.AddColorStop 1, W.BackColor, Alpha, 0.93
   CC.Paint , Pat
-  CC.DrawLine 0, dy - 1, dx, dy - 1, True, 1, vbBlack, 0.3
+  CC.DrawLine 0, dy - 1, dx, dy - 1, True, 1, vbBlack, 0.3 * Alpha
   
   If AllowGripperDrawing Then
-    W.Alpha = 0.85
+    W.Alpha = 0.85 * Alpha
       Cairo.Theme.DrawTo CC, W, thmTypeSeparatorLine, 0, 5, 3, 1, dy - 4
       Cairo.Theme.DrawTo CC, W, thmTypeSeparatorLine, 0, 7, 3, 1, dy - 4
     W.Alpha = Alpha
   End If
 End Sub
-
 

@@ -148,6 +148,3 @@ Const ArrowSize& = 8
     End If
   End If
 End Sub
-
-
-

@@ -8,7 +8,7 @@ BEGIN
 END
 Attribute VB_Name = "cwMenuBarItem"
 Attribute VB_GlobalNameSpace = False
-Attribute VB_Creatable = False
+Attribute VB_Creatable = True
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 Option Explicit
@@ -40,18 +40,19 @@ Public Property Set DataSource(NewValue As cMenuItem)
   Set mDataSource = NewValue
 End Property
 
-Public Sub ShowPopUp()
+Public Sub ShowPopUp(Optional ByVal WithFocus As Boolean)
 Dim MenuBar As cwMenuBar
   If Not W.Enabled Then Exit Sub
+
   Set MenuBar = W.Parent.object
   If Not MenuBar.CurPopUp Is Nothing Then
     If Not MenuBar.CurPopUp.DataSource Is mDataSource Then MenuBar.CurPopUp.DestroyPopup
   End If
   Set MenuBar.CurPopUp = New cwMenu
   MenuBar.CurPopUp.Widget.FontSize = W.FontSize
-      MenuBar.CurPopUp.InitAndShow W, mDataSource, PopupBehaviourDropDownLeftAligned
+  MenuBar.CurPopUp.InitAndShow W, mDataSource, PopupBehaviourDropDownLeftAligned, WithFocus
 End Sub
- 
+
 Private Sub W_MouseDown(Button As Integer, Shift As Integer, ByVal x As Single, ByVal y As Single)
   If Button = 1 Then ShowPopUp
 End Sub
@@ -59,11 +60,7 @@ Private Sub W_MouseEnter(ByVal MouseLeaveWidget As vbRichClient5.cWidgetBase)
   If IsPopupVisible And Not IsOwnPopupVisible Then
     ShowPopUp
   End If
-  Dim MenuBarItem As cwMenuBarItem
-  For Each MenuBarItem In W.Parent.Widgets
-    If Not W Is MenuBarItem.Widget Then MenuBarItem.Widget.MouseLeave W
-    MenuBarItem.Widget.Refresh
-  Next
+  W.Parent.object.CleanupActiveState W
   W.Parent.Refresh
 End Sub
 Private Function IsOwnPopupVisible() As Boolean
@@ -87,8 +84,10 @@ Private Sub W_AccessKeyPress(KeyAscii As Integer)
   If W.Root.IsHidden Then Exit Sub
  
   If InStr(1, W.AccessKeys, Chr$(KeyAscii), vbTextCompare) Then
+    W.Parent.object.CleanupActiveState W
     W.SetFocus
-    ShowPopUp
+    W.RaiseBubblingEvent Me, "AccessKeyPress", KeyAscii
+    W.SetFocus
     W.Refresh
     W.Parent.Refresh
   End If
