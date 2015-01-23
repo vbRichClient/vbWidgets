@@ -675,7 +675,7 @@ Dim NewSel&, i&, DoRefresh As Boolean
       End If
     End If
   End If
-  RaiseEvent MouseMoveOnListItem(mHoverIndex, x, y - (mHoverIndex - VScrollBar.Value) * mRowHeight - 1)
+  If y > 0 Then RaiseEvent MouseMoveOnListItem(mHoverIndex, x, y - (mHoverIndex - VScrollBar.Value) * mRowHeight - 1)
 
   If DoRefresh And Len(TScroll.Tag) = 0 Then W.Refresh
 End Sub
@@ -685,7 +685,7 @@ Dim i&, NewSel&
   x = x - mRowSelectorWidth
   y = y - mHeaderHeight
   
-  If y < 0 And mListIndex < 0 Then TScroll.Enabled = False: Exit Sub
+  If y < 0 Or mListIndex < 0 Then TScroll.Enabled = False: Exit Sub
   
   NewSel = GetListIndexFromMouseY(y)
   

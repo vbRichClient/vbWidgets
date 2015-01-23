@@ -82,6 +82,7 @@ Private Sub W_AddedToHierarchy()
 End Sub
 
 Private Sub W_BubblingEvent(Sender As Object, EventName As String, P1 As Variant, P2 As Variant, P3 As Variant, P4 As Variant, P5 As Variant, P6 As Variant, P7 As Variant)
+  If Sender Is Nothing Then Exit Sub
   If TypeOf Sender Is cwToolBarItem And Left(EventName, 2) <> "W_" Then 'reflect the two normal Events of a cwToolBarItem
     If EventName = "Click" Then RaiseEvent Click(Sender)
     If EventName = "ArrowClick" Then RaiseEvent ArrowClick(Sender)

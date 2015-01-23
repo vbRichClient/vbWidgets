@@ -567,7 +567,7 @@ Private Sub W_KeyPress(KeyAscii As Integer)
     Select Case KeyAscii
       Case vbKeyBack: DeleteText True
       Case Else
-        If KeyAscii >= vbKeySpace Then
+        If KeyAscii < 0 Or KeyAscii >= vbKeySpace Then
           InsertText ChrW$(KeyAscii)
         End If
     End Select
@@ -582,7 +582,7 @@ End Sub
 Private Sub InsertText(NewText$)
   Dim Buffer As String
   Dim NewLength As Long
-  
+
   If mLocked Then Exit Sub
   If Len(NewText) = 0 And mSelLength = 0 Then Exit Sub
   

@@ -36,6 +36,7 @@ Class=cwToolBarItem; cwToolBarItem.cls
 Class=cwDropDownList; cwDropDownList.cls
 Class=cwProgressBar; cwProgressBar.cls
 Class=cUndoRedo; cUndoRedo.cls
+Class=cIME; cIME.cls
 Startup="Sub Main"
 HelpFile=""
 Title="vbWidgets"
