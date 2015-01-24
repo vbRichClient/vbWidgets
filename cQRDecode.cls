@@ -10,17 +10,14 @@ Attribute VB_Name = "cQRDecode"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = True
 Attribute VB_PredeclaredId = False
-Attribute VB_Exposed = False
+Attribute VB_Exposed = True
 Option Explicit
 
 'a simple Binding for the nice Quirc-project of Daniel Beer (https://github.com/dlbeer/quirc) -
-'the lib comes under a liberal license, which allows commercial usage (see Bin-Folder for details)
-'I've compiled it in a StdCall-version, which this Class expects to be located in a Bin-SubFolder of the App-Path
-'Aside from the above library, this Class has no other (Code)Module-dependencies (Olaf Schmidt, Jan. 2015)
-
-Private Declare Function LoadLibraryW& Lib "kernel32" (ByVal lpLibFileName&)
-Private Declare Function FreeLibrary& Lib "kernel32" (ByVal hLib&)
-
+'the lib comes under a liberal license, which also allows commercial usage...
+'I've compiled it into the latest release of vb_cairo_sqlite.dll in a VB-friendly StdCall-version
+'Aside from vb_cairo_sqlite, this Class has no other (Code)Module-dependencies (Olaf Schmidt, Jan. 2015)
+ 
 Private Const QUIRC_MAX_BITMAP& = 3917
 Private Const QUIRC_MAX_PAYLOAD& = 8896
 
@@ -74,43 +71,35 @@ Public Enum QUIRC_DATA_TYPE
 End Enum
 
 ' Retrieve an initialized QR-code recognizer.
-Private Declare Function quirc_new Lib "QuircStdCall" () As Long
+Private Declare Function quirc_new Lib "vb_cairo_sqlite" () As Long
 
 ' Resize the QR-code recognizer. The size of an image must be specified before codes can be analyzed.
 ' This function returns 0 on success, or -1 if sufficient memory could not be allocated.
-Private Declare Function quirc_resize Lib "QuircStdCall" (ByVal hQ As Long, ByVal Width As Long, ByVal Height As Long) As Long
+Private Declare Function quirc_resize Lib "vb_cairo_sqlite" (ByVal hQ As Long, ByVal Width As Long, ByVal Height As Long) As Long
 
 ' quirc_begin() must first be called to obtain access to a buffer into which the input image should be placed.
 ' Optionally, the current width and height may be returned.
-Private Declare Function quirc_begin Lib "QuircStdCall" (ByVal hQ As Long, Optional Width As Long, Optional Height As Long) As Long
+Private Declare Function quirc_begin Lib "vb_cairo_sqlite" (ByVal hQ As Long, Optional Width As Long, Optional Height As Long) As Long
 
 ' After filling the buffer, quirc_end() should be called to process the image for QR-code recognition.
 ' The locations and content of each code may be obtained using accessor functions described below.
-Private Declare Sub quirc_end Lib "QuircStdCall" (ByVal hQ As Long)
+Private Declare Sub quirc_end Lib "vb_cairo_sqlite" (ByVal hQ As Long)
 
 ' Return the number of QR-codes identified in the last processed image.
-Private Declare Function quirc_count Lib "QuircStdCall" (ByVal hQ As Long) As Long
+Private Declare Function quirc_count Lib "vb_cairo_sqlite" (ByVal hQ As Long) As Long
 
 ' Extract the QR-code specified by the given index.
-Private Declare Sub quirc_extract Lib "QuircStdCall" (ByVal hQ As Long, ByVal Index As Long, Code As tQUIRC_CODE)
+Private Declare Sub quirc_extract Lib "vb_cairo_sqlite" (ByVal hQ As Long, ByVal Index As Long, Code As tQUIRC_CODE)
 
 ' Decode a QR-code, returning the payload data.
-Private Declare Function quirc_decode Lib "QuircStdCall" (Code As tQUIRC_CODE, Data As tQUIRC_DATA) As eQUIRC_DECODE_ERROR
+Private Declare Function quirc_decode Lib "vb_cairo_sqlite" (Code As tQUIRC_CODE, Data As tQUIRC_DATA) As eQUIRC_DECODE_ERROR
 
 ' Destroy a QR-code recognizer.
-Private Declare Sub quirc_destroy Lib "QuircStdCall" (ByVal hQ As Long)
+Private Declare Sub quirc_destroy Lib "vb_cairo_sqlite" (ByVal hQ As Long)
  
 'Class-internal Helper-Vars
-Private hLib&, mResultsCount&, mResultCodes() As tQUIRC_CODE, mResults() As tQUIRC_DATA, mResultErrors$()
-
-Private Sub Class_Initialize()
-  hLib = LoadLibraryW(StrPtr(App.Path & "\Bin\QuircStdCall.dll"))
-  If hLib = 0 Then Err.Raise vbObjectError, , "couldn't load (or find): " & App.Path & "\Bin\QuircStdCall.dll"
-End Sub
-Private Sub Class_Terminate()
-  If hLib Then FreeLibrary hLib
-End Sub
-
+Private mResultsCount&, mResultCodes() As tQUIRC_CODE, mResults() As tQUIRC_DATA, mResultErrors$()
+  
 Public Sub DecodeFromSurface(Src As cCairoSurface)
 Dim i As Long, x&, y&, hQ As Long, pImg As Long, SrfPxl() As Byte, QRPxl() As Byte
   mResultsCount = 0
@@ -215,3 +204,4 @@ Private Function GetErrorString(ByVal E As eQUIRC_DECODE_ERROR) As String
   End Select
 End Function
 
+ 

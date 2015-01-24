@@ -10,16 +10,13 @@ Attribute VB_Name = "cQREncode"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = True
 Attribute VB_PredeclaredId = False
-Attribute VB_Exposed = False
+Attribute VB_Exposed = True
 Option Explicit
 
 'a simple Binding for the nice libqrencode-project of Kentaro Fukuchi (http://fukuchi.org/works/qrencode/) -
-'the lib comes under LGPL-license which allows commercial usage of the compiled Binary...
-'I've compiled it in a StdCall-version, which this Class expects to be located in a Bin-SubFolder of the App-Path
-'Aside from the above library, this Class has no other (Code)Module-dependencies (Olaf Schmidt, Jan. 2015)
-
-Private Declare Function LoadLibraryW& Lib "kernel32" (ByVal lpLibFileName&)
-Private Declare Function FreeLibrary& Lib "kernel32" (ByVal hLib&)
+'the lib comes under LGPL-license which allows also commercial usage ...
+'I've compiled it into the latest release of vb_cairo_sqlite.dll in a VB-friendly StdCall-version
+'Aside from vb_cairo_sqlite, this Class has no other (Code)Module-dependencies (Olaf Schmidt, Jan. 2015)
 
 Public Enum QRencodeMode
   QR_MODE_NUM = 0    'Numeric mode
@@ -55,20 +52,10 @@ Private Type QRcode
 ' *     `-------- non-data modules (format, timing, etc.)
 End Type
  
-Private Declare Function QRcode_encodeData Lib "libQREncodeStdCall" (ByVal LenData As Long, ByVal pData As Long, ByVal Version As Long, ByVal EcLevel As QRecLevel) As Long
-Private Declare Function QRcode_encodeDataMQR Lib "libQREncodeStdCall" (ByVal LenData As Long, ByVal pData As Long, ByVal Version As Long, ByVal EcLevel As QRecLevel) As Long
-Private Declare Sub QRcode_free Lib "libQREncodeStdCall" (ByVal hQR As Long)
-
-Private hLib As Long
-
-Private Sub Class_Initialize()
-  hLib = LoadLibraryW(StrPtr(App.Path & "\Bin\libQREncodeStdCall.dll"))
-  If hLib = 0 Then Err.Raise vbObjectError, , "couldn't load (or find): " & App.Path & "\Bin\libQREncodeStdCall.dll"
-End Sub
-Private Sub Class_Terminate()
-  If hLib Then FreeLibrary hLib
-End Sub
-
+Private Declare Function QRcode_encodeData Lib "vb_cairo_sqlite" (ByVal LenData As Long, ByVal pData As Long, ByVal Version As Long, ByVal EcLevel As QRecLevel) As Long
+Private Declare Function QRcode_encodeDataMQR Lib "vb_cairo_sqlite" (ByVal LenData As Long, ByVal pData As Long, ByVal Version As Long, ByVal EcLevel As QRecLevel) As Long
+Private Declare Sub QRcode_free Lib "vb_cairo_sqlite" (ByVal hQR As Long)
+ 
 Public Function QREncode(Data() As Byte, Optional Version_1to40 As Long, _
                                          Optional ByVal EcLevel As QRecLevel = QR_ECLEVEL_M, _
                                          Optional ByVal PixelSize As Long = 4) As cCairoSurface
@@ -127,4 +114,4 @@ Dim x As Long, y As Long, Width As Long
     Next x, y
   End With
 End Function
-
+ 
