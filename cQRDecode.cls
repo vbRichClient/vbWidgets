@@ -1,6 +1,6 @@
 VERSION 1.0 CLASS
 BEGIN
-  MultiUse = -1  'True
+  MultiUse = -1  ' True
   Persistable = 0  'NotPersistable
   DataBindingBehavior = 0  'vbNone
   DataSourceBehavior  = 0  'vbNone
@@ -11,7 +11,7 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = True
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
-Option Explicit '
+Option Explicit
 
 'a simple Binding for the nice Quirc-project of Daniel Beer (https://github.com/dlbeer/quirc) -
 'the lib comes under a liberal license, which also allows commercial usage...
