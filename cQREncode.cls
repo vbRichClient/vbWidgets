@@ -58,13 +58,14 @@ Private Declare Sub QRcode_free Lib "vb_cairo_sqlite" (ByVal hQR As Long)
  
 Public Function QREncode(Data() As Byte, Optional Version_1to40 As Long, _
                                          Optional ByVal EcLevel As QRecLevel = QR_ECLEVEL_M, _
-                                         Optional ByVal PixelSize As Long = 4) As cCairoSurface
+                                         Optional ByVal PixelSize As Long = 4, _
+                                         Optional ByVal SrfType As SurfaceCreateEnum = ImageSurface) As cCairoSurface
                                          
 Dim hQR As Long, LenData As Long, QR As QRcode, Result() As Byte
   On Error Resume Next
     LenData = UBound(Data) - LBound(Data) + 1
   On Error GoTo 0
-  If LenData = 0 Then Set QREncode = Cairo.CreateSurface(1, 1): Exit Function
+  If LenData = 0 Then Set QREncode = Cairo.CreateSurface(1, 1, SrfType): Exit Function
   
   If Version_1to40 < 0 Then Version_1to40 = 0 Else If Version_1to40 > 40 Then Version_1to40 = 40
   hQR = QRcode_encodeData(LenData, VarPtr(Data(LBound(Data))), Version_1to40, EcLevel)
@@ -75,18 +76,19 @@ Dim hQR As Long, LenData As Long, QR As QRcode, Result() As Byte
   QRcode_free hQR
   
   Version_1to40 = QR.Version 'report the resulting Version back to the caller in our ByRef-Param
-  Set QREncode = RenderResultToSurface(Result, PixelSize)
+  Set QREncode = RenderResultToSurface(Result, PixelSize, SrfType)
 End Function
-
+ 
 Public Function QREncodeMQR(Data() As Byte, Optional ByVal Version_1to4 As Long = 4, _
                                             Optional ByVal EcLevel As QRecLevel = QR_ECLEVEL_M, _
-                                            Optional ByVal PixelSize As Long = 4) As cCairoSurface
+                                            Optional ByVal PixelSize As Long = 4, _
+                                            Optional ByVal SrfType As SurfaceCreateEnum = ImageSurface) As cCairoSurface
                                             
 Dim hQR As Long, LenData As Long, QR As QRcode, Result() As Byte
   On Error Resume Next
     LenData = UBound(Data) - LBound(Data) + 1
   On Error GoTo 0
-  If LenData = 0 Then Set QREncodeMQR = Cairo.CreateSurface(1, 1): Exit Function
+  If LenData = 0 Then Set QREncodeMQR = Cairo.CreateSurface(1, 1, SrfType): Exit Function
   'other than in normal QREncoding above, for MicroQR the Version is not "auto-expanded" -
   'one has to provide the Version in the right size (for the amount of Data to be taken up) oneself
   If Version_1to4 < 1 Then Version_1to4 = 1 Else If Version_1to4 > 4 Then Version_1to4 = 4
@@ -97,21 +99,28 @@ Dim hQR As Long, LenData As Long, QR As QRcode, Result() As Byte
   New_c.MemCopy VarPtr(Result(0, 0)), QR.pResult, QR.Width ^ 2
   QRcode_free hQR
   
-  Set QREncodeMQR = RenderResultToSurface(Result, PixelSize)
+  Set QREncodeMQR = RenderResultToSurface(Result, PixelSize, SrfType)
 End Function
 
-Private Function RenderResultToSurface(Result() As Byte, ByVal PixelSize&) As cCairoSurface
+Private Function RenderResultToSurface(Result() As Byte, ByVal PixelSize&, _
+                 Optional ByVal SrfType As SurfaceCreateEnum = ImageSurface) As cCairoSurface
 Dim x As Long, y As Long, Width As Long
   Width = UBound(Result) + 1
   If PixelSize < 1 Then PixelSize = 1 Else If PixelSize > 15 Then PixelSize = 15
-  Set RenderResultToSurface = Cairo.CreateSurface(PixelSize * Width, PixelSize * Width)
+  Set RenderResultToSurface = Cairo.CreateSurface(PixelSize * Width, PixelSize * Width, SrfType)
   With RenderResultToSurface.CreateContext
-    .ScaleDrawings PixelSize, PixelSize
-    For y = 0 To Width - 1: For x = 0 To Width - 1
-      .Rectangle x, y, 1, 1
-      .SetSourceColor IIf(Result(x, y) And 1, vbBlack, vbWhite)
-      .Fill
-    Next x, y
+    .SetSourceColor vbWhite: .Paint 'ensure white BackGround
+    
+    .SetLineWidth 0.05 'ensure a small hairline around our black rectangles below
+    .ScaleDrawings PixelSize, PixelSize 'scale the output appropriately
+    
+    .SetSourceColor vbBlack 'since white background was ensured above...
+        For y = 0 To Width - 1: For x = 0 To Width - 1
+          If Result(x, y) And 1 Then .Rectangle x, y, 1, 1 '...only black rects are drawn now
+        Next x, y
+    .Fill True: .Stroke 'fill (and stroke) the black rectangles
   End With
 End Function
  
+
+

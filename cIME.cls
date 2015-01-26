@@ -15,7 +15,7 @@ Option Explicit
 
 Event HandleIMEPositioning(FocusedWidget As cWidgetBase, AllowIME As Boolean)
 Event HandleIMEChar(FocusedWidget As cWidgetBase, ByVal IMEKeyCode As Integer, IMEWChar As String)
-
+ 
 Private Type POINTAPI
   x As Long
   y As Long
@@ -97,8 +97,7 @@ On Error GoTo 1
       
       Case WM_IME_CHAR
         Dim WFoc As cWidgetBase, KeyCode As Integer
-        Set WFoc = FocusedWidget
-        KeyCode = CInt("&H" & Hex(wParam And &HFFFF&))
+        Set WFoc = FocusedWidget: KeyCode = CInt("&H" & Hex(wParam And &HFFFF&))
         If Not WFoc Is Nothing Then If WFoc.Key = tmrFoc.Tag Then RaiseEvent HandleIMEChar(WFoc, KeyCode, ChrW(KeyCode))
         Exit Sub 'handled ourselves - so we skip the default message-handler at the end of this function
    End Select
@@ -128,7 +127,7 @@ On Error GoTo 1
   
 1: SwitchOpenStatus AllowIME
 End Sub
-  
+
 Private Sub Class_Terminate()
   Set tmrFoc = Nothing
   Set SC = Nothing

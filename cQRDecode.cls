@@ -17,7 +17,7 @@ Option Explicit
 'the lib comes under a liberal license, which also allows commercial usage...
 'I've compiled it into the latest release of vb_cairo_sqlite.dll in a VB-friendly StdCall-version
 'Aside from vb_cairo_sqlite, this Class has no other (Code)Module-dependencies (Olaf Schmidt, Jan. 2015)
- 
+  
 Private Const QUIRC_MAX_BITMAP& = 3917
 Private Const QUIRC_MAX_PAYLOAD& = 8896
 

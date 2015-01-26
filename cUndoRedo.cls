@@ -14,7 +14,7 @@ Attribute VB_Exposed = True
 Option Explicit 'A generic Undo/Redo History-List
 
 Private States As cCollection, Idx As Long
- 
+  
 Private Sub Class_Initialize()
   Set States = New_c.Collection
 End Sub
