@@ -25,7 +25,7 @@ Private Type tQUIRC_POINT
   x As Long
   y As Long
 End Type
-
+ 
 Private Type tQUIRC_CODE
   Corners(0 To 3) As tQUIRC_POINT ' The four corners of the QR-code, from top left, clockwise
 

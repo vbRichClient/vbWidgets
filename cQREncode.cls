@@ -28,7 +28,7 @@ Public Enum QRencodeMode
   QR_MODE_FNC1FIRST  'FNC1, first position
   QR_MODE_FNC1SECOND 'FNC1, second position
 End Enum
-
+ 
 Public Enum QRecLevel 'Error-Correction-Level
   QR_ECLEVEL_L = 0 'lowest
   QR_ECLEVEL_M

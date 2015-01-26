@@ -20,7 +20,7 @@ Private Type POINTAPI
   x As Long
   y As Long
 End Type
-
+ 
 Private Type RECT
   Left As Long
   Top As Long

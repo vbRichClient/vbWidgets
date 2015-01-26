@@ -12,7 +12,7 @@ Attribute VB_Creatable = True
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 Option Explicit 'A generic Undo/Redo History-List...
-
+ 
 Private States As cCollection, Idx As Long
 
 Private Sub Class_Initialize()
