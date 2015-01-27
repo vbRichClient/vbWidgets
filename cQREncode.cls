@@ -111,14 +111,13 @@ Dim x As Long, y As Long, Width As Long
   With RenderResultToSurface.CreateContext
     .SetSourceColor vbWhite: .Paint 'ensure white BackGround
     
-    .SetLineWidth 0.05 'ensure a small hairline around our black rectangles below
     .ScaleDrawings PixelSize, PixelSize 'scale the output appropriately
     
     .SetSourceColor vbBlack 'since white background was ensured above...
         For y = 0 To Width - 1: For x = 0 To Width - 1
           If Result(x, y) And 1 Then .Rectangle x, y, 1, 1 '...only black rects are drawn now
         Next x, y
-    .Fill True: .Stroke 'fill (and stroke) the black rectangles
+    .Fill 'fill the black rectangles
   End With
 End Function
  
