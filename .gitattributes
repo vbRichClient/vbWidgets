@@ -1,2 +1,7 @@
 * text=auto
-* text eol=crlf
+*.vbg text eol=crlf
+*.vbp text eol=crlf
+*.frm text eol=crlf
+*.bas text eol=crlf
+*.cls text eol=crlf
+*.ctl text eol=crlf
