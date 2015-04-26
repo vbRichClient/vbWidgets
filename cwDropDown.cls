@@ -69,7 +69,6 @@ Public Sub DestroyPopup()
   W.RaiseBubblingEvent Me, "PopupDestroyed"
 End Sub
  
-
 '------ Event-checks, which ensure Popup-Deactivation under certain conditions -----
 Private Sub PopUp_AppDeactivate()
   Btn.Value = 0
@@ -132,7 +131,7 @@ Dim PopUpOffsX As Single, PopUpOffsY As Single, WidthPxl As Single, HeightPxl As
     If mPopupWidget Is Nothing Then 'apparently nobody filled something into the Byref-Params, so we try again with the Bubbling-Event
       W.RaiseBubblingEvent Me, "PopupWidgetRequest", mPopupWidget, WidthPxl, HeightPxl
     End If
-    If mPopupWidget Is Nothing Then Exit Sub 'still nobody provided something, so we exit here
+    If mPopupWidget Is Nothing Then Btn.Value = 0: Exit Sub 'still nobody provided something, so we exit here
     
     W.CalculateScreenOffsets mScreenX, mScreenY
     mWindowUnderStartPos = W.Root.WindowFromPoint(mScreenX, mScreenY)

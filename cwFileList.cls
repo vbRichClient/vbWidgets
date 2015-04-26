@@ -21,13 +21,13 @@ Attribute VList.VB_VarHelpID = -1
 
 Private mDirList As cDirList
 Private mPattern As String, mSortMode As DirListSortMode
-Private mHidden As Boolean, mSystem As Boolean
+Private mHidden As Boolean, mSystem As Boolean, mLastKeyCode As Integer, mLastIndex As Integer
 
 Private WithEvents W As cWidgetBase
 Attribute W.VB_VarHelpID = -1
  
 Private Sub Class_Initialize()
-  Set mDirList = New_c.FSO.GetDirList(App.Path, dlSortByName, mPattern, mHidden, mSystem)
+  Set mDirList = New_c.FSO.GetDirList(App.Path, dlSortByNameLogically, mPattern, mHidden, mSystem)
   
   Set VList = New cwVList 'the Widget-Instance, to inherit from
       VList.RowHeight = 19
@@ -53,6 +53,7 @@ Public Property Get Path() As String
   Path = mDirList.Path
 End Property
 Public Property Let Path(ByVal NewValue As String)
+  mLastKeyCode = 0: mLastIndex = 0
   If Right$(NewValue, 1) <> "\" Then NewValue = NewValue & "\"
   Set mDirList = New_c.FSO.GetDirList(NewValue, mSortMode, mPattern, mHidden, mSystem)
   VList.ListCount = mDirList.FilesCount
@@ -138,4 +139,23 @@ Const IcoSize As Single = 16
   CC.RenderSurfaceContent Srf, 1 + IcoOffs, IcoOffs, IcoSize, IcoSize, CAIRO_FILTER_GAUSSIAN
   CC.TextOut 1 + IcoOffs + dy, FntOffs, mDirList.FileName(Index)
 End Sub
+ 
+Private Sub W_KeyUp(KeyCode As Integer, Shift As Integer)
+Dim Index As Long, WChar As String
+    Index = FindIndex(KeyCode, IIf(mLastKeyCode = KeyCode, mLastIndex + 1, 0), WChar)
+    If mLastKeyCode = KeyCode And WChar <> ChrW$(KeyCode) Then Index = FindIndex(KeyCode, 0, WChar)
+  
+    If Index < mDirList.FilesCount Then
+      mLastKeyCode = KeyCode
+      mLastIndex = Index
+      VList.ClearSelections Index
+      W.Refresh
+    End If
+End Sub
 
+Private Function FindIndex(KeyCode As Integer, StartIdx As Long, WChar As String) As Long
+  For FindIndex = StartIdx To mDirList.FilesCount - 1
+    WChar = UCase$(Left$(mDirList.FileName(FindIndex), 1))
+    If WChar >= ChrW$(KeyCode) Then Exit For
+  Next
+End Function

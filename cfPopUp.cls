@@ -26,8 +26,18 @@ Attribute tmrPopUp.VB_VarHelpID = -1
 Private mMouseDown As Boolean, mInitialMouseDownKey As Long
 
 Public Sub Load(Widget As Object, ByVal ScreenX As Long, ByVal ScreenY As Long, ByVal WidthPxl As Long, ByVal HeightPxl As Long, Optional ByVal Zoom As Single = 1, Optional ByVal WithDropShadow As Boolean = True)
-  If Widget Is Nothing Then Exit Sub
   Unload
+  If Widget Is Nothing Then Exit Sub
+
+  If TypeOf Widget Is cwMenu Then
+    If Not TypeOf Widget.InitiatorWidget Is cwMenu Then
+      If Not ActivePopUp Is Nothing Then If Not ActivePopUp Is Me Then ActivePopUp.Unload
+      Set ActivePopUp = Me
+    End If
+  Else
+    If Not ActivePopUp Is Nothing Then If Not ActivePopUp Is Me Then ActivePopUp.Unload
+    Set ActivePopUp = Me
+  End If
   
   Set Form = Cairo.WidgetForms.CreateChild(0, True, False, False, WithDropShadow)
       Form.WidgetRoot.Zoom = Zoom
@@ -44,15 +54,22 @@ Public Sub Show()
 End Sub
 
 Public Sub Unload()
-  If Not Form Is Nothing Then Form.Unload
-  Set Form = Nothing
-  Set tmrPopUp = Nothing
+  On Error Resume Next
+    Set tmrPopUp = Nothing
+    If Not ActivePopUp Is Nothing Then If ActivePopUp Is Me Then Set ActivePopUp = Nothing
+  
+    If Not Form Is Nothing Then
+      If Not Form.Widgets Is Nothing Then Form.Widgets.RemoveAll
+      If Form.hWnd Then Form.Unload
+    End If
+    Set Form = Nothing
+  If Err Then Err.Clear
 End Sub
 
 Private Sub Form_ActivateApp(ByVal Activated As Boolean, ByVal OtherThreadID As Long)
   If Not Activated Then RaiseEvent AppDeactivate
 End Sub
- 
+
 Private Sub Form_MouseDown(Button As Integer, Shift As Integer, x As Single, y As Single)
   mMouseDown = True
 End Sub
@@ -67,13 +84,17 @@ End Sub
 
 Private Sub tmrPopUp_Timer()
   If Form Is Nothing Then Exit Sub
-  With Form.WidgetRoot
-    If mMouseDown And .MouseKeyDown = 0 Then mMouseDown = False
-    If (Not mMouseDown) And .MouseKeyDown Then
-      If .GetWindowUnderCursor <> .hWnd Then RaiseEvent MouseClickOutside
-    End If
-  End With
-  RaiseEvent CheckForAdditionalCloseConditions
+  If Form.WidgetRoot Is Nothing Then Exit Sub
+  If Form.hWnd = 0 Then Exit Sub
+  On Error Resume Next
+    With Form.WidgetRoot
+      If mMouseDown And .MouseKeyDown = 0 Then mMouseDown = False
+      If (Not mMouseDown) And .MouseKeyDown Then
+        If .GetWindowUnderCursor <> .hWnd Then RaiseEvent MouseClickOutside
+      End If
+    End With
+    RaiseEvent CheckForAdditionalCloseConditions
+  If Err Then Err.Clear
 End Sub
  
 Private Sub Class_Terminate()

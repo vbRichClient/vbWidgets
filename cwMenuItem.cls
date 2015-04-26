@@ -36,7 +36,7 @@ End Property
 Public Property Get Widgets() As cWidgets
   Set Widgets = W.Widgets
 End Property
-
+ 
 Public Property Get SubMenuDS() As cMenuItem
   Set SubMenuDS = mSubMenuDS
 End Property
@@ -178,7 +178,7 @@ Private Sub DrawCheckMark(CC As cCairoContext, ByVal CheckSize As Long)
 Dim x As Double, y As Double
     y = (W.Height - CheckSize) / 2 + 2
     x = y + 3.3
-    CC.SetLineCap CAIRO_LINE_CAP_ROUND
+    CC.SetLineCap Cairo_LINE_CAP_ROUND
     CC.SetLineWidth 2
       CC.SetSourceColor W.FocusColor, 0.85, 0.27
       x = x + 2: CheckSize = CheckSize - 4
@@ -196,7 +196,7 @@ Private Sub DrawOptionMark(CC As cCairoContext, ByVal OptionSize As Long)
 Dim x As Double, y As Double
     y = (W.Height - OptionSize) / 2 + 2
     x = y + 3.3
-    CC.SetLineCap CAIRO_LINE_CAP_ROUND
+    CC.SetLineCap Cairo_LINE_CAP_ROUND
  
       OptionSize = OptionSize - 8
       x = x + 2 + OptionSize / 2

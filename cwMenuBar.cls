@@ -120,7 +120,7 @@ Dim MenuBarItem As cwMenuBarItem
   Next
   W.Refresh
 End Sub
- 
+
 Private Sub CurPopUp_Click(ByVal CurMenuItemPath As String)
   RaiseEvent Click(CurMenuItemPath)
   W.RaiseBubblingEvent Me, "Click", CurMenuItemPath
@@ -320,4 +320,12 @@ Dim Pat As cCairoPattern
   CC.DrawLine 0, dy - 1, dx, dy - 1, True, 1, vbBlack, 0.3
 End Sub
 
+Private Sub Class_Terminate()
+  Set tmrCleanup = Nothing
+  Set tmrWatchActive = Nothing
+  Set KWatch = Nothing
+  Set mDataSource = Nothing
+  If Not CurPopUp Is Nothing Then CurPopUp.DestroyPopup
+  Set CurPopUp = Nothing
+End Sub
 
