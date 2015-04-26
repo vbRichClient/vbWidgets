@@ -12,7 +12,7 @@ Attribute VB_Creatable = True
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 Option Explicit
-
+ 
 Event HandleIMEPositioning(FocusedWidget As cWidgetBase, AllowIME As Boolean)
 Event HandleIMEChar(FocusedWidget As cWidgetBase, ByVal IMEKeyCode As Integer, IMEWChar As String)
 

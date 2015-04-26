@@ -12,7 +12,7 @@ Attribute VB_Creatable = True
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 Option Explicit
-
+ 
 'a simple Binding for the nice libqrencode-project of Kentaro Fukuchi (http://fukuchi.org/works/qrencode/) -
 'the lib comes under LGPL-license which allows also commercial usage ...
 'I've compiled it into the latest release of vb_cairo_sqlite.dll in a VB-friendly StdCall-version
