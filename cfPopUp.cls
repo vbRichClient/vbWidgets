@@ -12,7 +12,7 @@ Attribute VB_Creatable = True
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 Option Explicit
-
+ 
 Event MouseClickOutside()
 Event AppDeactivate()
 Event CheckForAdditionalCloseConditions()
