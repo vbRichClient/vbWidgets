@@ -13,6 +13,23 @@ Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 Option Explicit
 
+Private Type LOGFONT
+  lfHeight As Long
+  lfWidth As Long
+  lfEscapement As Long
+  lfOrientation As Long
+  lfWeight As Long
+  LFItalic As Byte
+  LFUnderline As Byte
+  LFStrikeOut As Byte
+  lfCharSet As Byte
+  lfOutPrecision As Byte
+  lfClipPrecision As Byte
+  lfQuality As Byte
+  lfPitchAndFamily As Byte
+  lfFaceName As String * 32
+End Type
+
 Private Declare Function GetSystemMetrics Lib "user32" (ByVal nIndex As Long) As Long
 Private Declare Function SystemParametersInfoW Lib "user32" (ByVal uAction As Long, ByVal uParam As Long, lpvParam As Any, ByVal fuWinIni As Long) As Long
 
@@ -35,9 +52,9 @@ End Sub
 
 Private Function cTheme_GetIconFontName() As String
 Const SPI_GETICONTITLELOGFONT As Long = 31
-Dim S As String: S = String$(30, 0)
-  SystemParametersInfoW SPI_GETICONTITLELOGFONT, 0, ByVal StrPtr(S), 0
-  cTheme_GetIconFontName = Mid$(S, 15, InStr(15, S, vbNullChar) - 15)
+Static LFW As LOGFONT
+  SystemParametersInfoW SPI_GETICONTITLELOGFONT, LenB(LFW), ByVal VarPtr(LFW), 0
+  cTheme_GetIconFontName = Left$(LFW.lfFaceName, InStr(LFW.lfFaceName, vbNullChar) - 1)
 End Function
  
 Private Sub cTheme_FillThemeColorArray(DstThemeColorArray() As Long)

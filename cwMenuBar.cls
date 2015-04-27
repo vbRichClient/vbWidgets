@@ -124,6 +124,7 @@ End Sub
 Private Sub CurPopUp_Click(ByVal CurMenuItemPath As String)
   RaiseEvent Click(CurMenuItemPath)
   W.RaiseBubblingEvent Me, "Click", CurMenuItemPath
+  W.Refresh
 End Sub
 
 Private Sub CurPopUp_MenuBarEntryShift(ByVal ShiftLeft As Boolean)
@@ -172,7 +173,8 @@ Dim MenuBarItem As cwMenuBarItem
     Next
   End If
   W.Root.Widget.MouseUp 0, 0, -1, -1
-  Set tmrCleanup = New_c.Timer(50, True)
+
+  Set tmrCleanup = New_c.Timer(60, True)
 End Sub
  
 Private Sub KWatch_VKeyDown(ByVal vKey As Integer, ByVal MapIdx As Long)

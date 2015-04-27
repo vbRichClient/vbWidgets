@@ -39,10 +39,14 @@ Public Sub Load(Widget As Object, ByVal ScreenX As Long, ByVal ScreenY As Long, 
     Set fActivePopUp = Me
   End If
   
-  Set Form = Cairo.WidgetForms.CreateChild(0, True, False, False, WithDropShadow)
-      Form.WidgetRoot.Zoom = Zoom
-      Form.Widgets.Add Widget, "CurPopupWidget", 0, 0, WidthPxl / Zoom, HeightPxl / Zoom
-      Form.Move ScreenX, ScreenY, WidthPxl, HeightPxl
+  If Widget.Widget.Root Is Nothing Then
+    Set Form = Cairo.WidgetForms.CreateChild(0, True, False, False, WithDropShadow)
+  Else
+    Set Form = Cairo.WidgetForms.CreateChild(Widget.Widget.Root.DialogFormHwnd, True, False, False, WithDropShadow)
+  End If
+  Form.WidgetRoot.Zoom = Zoom
+  Form.Widgets.Add Widget, "CurPopupWidget", 0, 0, WidthPxl / Zoom, HeightPxl / Zoom
+  Form.Move ScreenX, ScreenY, WidthPxl, HeightPxl
   mInitialMouseDownKey = Form.WidgetRoot.MouseKeyDown
   mMouseDown = True
 
@@ -56,7 +60,7 @@ End Sub
 Public Sub Unload()
   On Error Resume Next
     Set tmrPopUp = Nothing
-    If Not fActivePopUp Is Nothing Then If fActivePopUp Is Me Then Set fActivePopUp = Nothing
+    If fActivePopUp Is Me Then Set fActivePopUp = Nothing
   
     If Not Form Is Nothing Then
       If Not Form.Widgets Is Nothing Then Form.Widgets.RemoveAll

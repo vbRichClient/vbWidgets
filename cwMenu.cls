@@ -233,8 +233,7 @@ Dim MItem As cMenuItem
     Set MItem = mDataSource.SubItemByPathKey(CurMenuItemPath)
     If MItem.IsCheckable Then MItem.Checked = Not MItem.Checked
     DestroyPopup
-  If Err Then Err.Clear: Exit Sub
- 
+  If Err Then Err.Clear
   RaiseEvent Click(CurMenuItemPath)
   W.RaiseBubblingEvent Me, "Click", CurMenuItemPath
 End Sub
@@ -242,7 +241,6 @@ End Sub
 Private Sub SC_WindowProc(Result As Long, ByVal Msg As Long, ByVal wParam As Long, ByVal lParam As Long)
   Select Case Msg 'check only for NonClient - WM_NCLBUTTONDOWN,WM_NCRBUTTONDOWN,WM_NCMBUTTONDOWN
     Case &HA1, &HA4, &HA7
-'        Result = SC.CallWindowProc(Msg, wParam, lParam)
         DestroyPopup
   End Select
   If Not SC Is Nothing Then Result = SC.CallWindowProc(Msg, wParam, lParam)
@@ -268,19 +266,19 @@ Dim M As cwMenu, WasRootMenu As Boolean
       mSubMenu.DestroyPopup
       Set mSubMenu = Nothing
     End If
-    
-    If Not fPopUp Is Nothing Then fPopUp.Unload
-    Set fPopUp = Nothing
-   
+
     Set mActiveMenuItem = Nothing
     Set mActiveRootWidget = Nothing
     Set mInitiatorWidget = Nothing
+    
     If WasRootMenu Then
       RaiseEvent MenuDestroyed(mDestroyedByKeyPress)
       W.RaiseBubblingEvent Me, "MenuDestroyed", mDestroyedByKeyPress
     End If
     mDestroyedByKeyPress = False
     
+    If Not fPopUp Is Nothing Then fPopUp.Unload
+    Set fPopUp = Nothing
   If Err Then Err.Clear
 End Sub
  
@@ -516,7 +514,6 @@ Public Sub W_MouseUp(Button As Integer, Shift As Integer, ByVal x As Single, ByV
         End If
       End If
   End If
-'Debug.Print "W_MouseUp", MenuItemKeyPath
 End Sub
 
 Friend Sub UpdateLastMouseInfo(ByVal x As Single, ByVal y As Single)
