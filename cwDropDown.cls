@@ -18,8 +18,8 @@ Event PopupReturnKeyPressed(DestroyPopup As Boolean)
 Event PopupWidgetRequest(WidgetInstance As Object, WidthPxl As Single, HeightPxl As Single)
 Event PopupDestroyed()
 
-Private WithEvents PopUp As cfPopUp 'this PopupForm-HelperClass is hosted here in the vbWidgets.dll-Project
-Attribute PopUp.VB_VarHelpID = -1
+Private WithEvents fPopUp As cfPopUp 'this PopupForm-HelperClass is hosted here in the vbWidgets.dll-Project
+Attribute fPopUp.VB_VarHelpID = -1
 Public WithEvents Btn As cwButton 'we inherit visually from a preimplemented Widget (in this case a cwButton in CheckButton-Mode)
 Attribute Btn.VB_VarHelpID = -1
 Private WithEvents W As cWidgetBase
@@ -62,21 +62,22 @@ Public Property Get Text() As String
 End Property
 
 Public Sub DestroyPopup()
-  Set PopUp = Nothing
+  If Not fPopUp Is Nothing Then fPopUp.Unload
+  Set fPopUp = Nothing
   Set mPopupWidget = Nothing
   If Not Btn Is Nothing Then Btn.Value = 0
   RaiseEvent PopupDestroyed
   W.RaiseBubblingEvent Me, "PopupDestroyed"
 End Sub
- 
-'------ Event-checks, which ensure Popup-Deactivation under certain conditions -----
-Private Sub PopUp_AppDeactivate()
+
+'------ Event-checks, which ensure fPopUp-Deactivation under certain conditions -----
+Private Sub fPopUp_AppDeactivate()
   Btn.Value = 0
 End Sub
-Private Sub PopUp_MouseClickOutside()
+Private Sub fPopUp_MouseClickOutside()
   If Not W.MouseOver Then Btn.Value = 0
 End Sub
-Private Sub PopUp_CheckForAdditionalCloseConditions()
+Private Sub fPopUp_CheckForAdditionalCloseConditions()
   If mWindowUnderStartPos <> W.Root.WindowFromPoint(mScreenX, mScreenY) Then Btn.Value = 0
 End Sub
 Private Sub W_ContainerResize()
@@ -85,7 +86,7 @@ End Sub
 Private Sub W_LostFocus()
   Btn.Value = 0
 End Sub
-'---------------- End of Popup-Deactivation-Checks ------------------
+'---------------- End of fPopUp-Deactivation-Checks ------------------
 
 're-delegation-messages into the currently "popped-up" Widget
 Private Sub W_KeyDown(KeyCode As Integer, Shift As Integer)
@@ -108,12 +109,10 @@ Dim DestroyPopup As Boolean
   End If
 End Sub
 Private Sub W_KeyPress(KeyAscii As Integer)
-  If mPopupWidget Is Nothing Then Exit Sub
-  mPopupWidget.Widget.KeyPress KeyAscii
+  If Not mPopupWidget Is Nothing Then mPopupWidget.Widget.KeyPress KeyAscii
 End Sub
 Private Sub W_KeyUp(KeyCode As Integer, Shift As Integer)
-  If mPopupWidget Is Nothing Then Exit Sub
-  mPopupWidget.Widget.KeyUp KeyCode, Shift
+  If Not mPopupWidget Is Nothing Then mPopupWidget.Widget.KeyUp KeyCode, Shift
 End Sub
 Private Sub W_MouseWheel(ByVal MouseKeys As Long, ByVal Rotation As Long, ByVal LineOffset As Long, ByVal xAbs As Single, ByVal yAbs As Single)
   If mPopupWidget Is Nothing Then Exit Sub
@@ -138,9 +137,9 @@ Dim PopUpOffsX As Single, PopUpOffsY As Single, WidthPxl As Single, HeightPxl As
 
     W.CalculateScreenPopupOffsets WidthPxl, HeightPxl, PopUpOffsX, PopUpOffsY
 
-    Set PopUp = New cfPopUp
-    PopUp.Load mPopupWidget, PopUpOffsX, PopUpOffsY, WidthPxl, HeightPxl, W.Zoom, True
-    PopUp.Show
+    Set fPopUp = New cfPopUp
+    fPopUp.Load mPopupWidget, PopUpOffsX, PopUpOffsY, WidthPxl, HeightPxl, W.Zoom, True
+    fPopUp.Show
   Else
     DestroyPopup
   End If
@@ -159,3 +158,8 @@ Dim ArrowSize As Single, LeftOffs As Single, RightOffs As Single
   Cairo.Theme.DrawTo CC, W, thmTypeSeparatorLine, 0, LeftOffs, 3, 1, dy_Aligned - 4
   Cairo.Theme.DrawTo CC, W, thmTypeArrow, 0, LeftOffs + (RightOffs - ArrowSize) / 2, (dy_Aligned - ArrowSize) / 2, ArrowSize, ArrowSize, , thmDirectionDown
 End Sub
+ 
+Private Sub Class_Terminate()
+  If Not fPopUp Is Nothing Then fPopUp.Unload
+End Sub
+

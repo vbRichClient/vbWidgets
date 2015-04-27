@@ -6,7 +6,7 @@ Public Const HSplitCursor_Png$ = "iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAA
 
 Declare Function GetInstanceEx Lib "DirectCom" (StrPtr_FName As Long, StrPtr_ClassName As Long, ByVal UseAlteredSearchPath As Boolean) As Object
 
-Public New_c As cConstructor, Cairo As cCairo, ActivePopUp As cfPopUp
+Public New_c As cConstructor, Cairo As cCairo, fActivePopUp As cfPopUp
 
 Public Sub Main()
   On Error Resume Next

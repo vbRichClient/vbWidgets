@@ -251,7 +251,7 @@ End Sub
 
 Private Sub W_KeyUp(KeyCode As Integer, Shift As Integer)
   RaiseEvent KeyUp(KeyCode, Shift)
-  If KeyCode = 32 Then
+  If KeyCode = vbKeySpace Then
     CheckAndRaiseClick
     BDown = False
     W.Refresh
@@ -270,14 +270,9 @@ Private Sub W_MouseDown(Button As Integer, Shift As Integer, ByVal x As Single, 
 End Sub
 Private Sub W_MouseMove(Button As Integer, Shift As Integer, ByVal x As Single, ByVal y As Single)
 Dim NewOutsideValue As Boolean
- 
-  NewOutsideValue = (x < 0 Or x > dx Or y < 0 Or y > dy)
-  If BDown And (NewOutsideValue <> OutSide) Then
+    NewOutsideValue = (x < 0 Or x > dx Or y < 0 Or y > dy)
+    If BDown And (NewOutsideValue <> OutSide) Then W.Refresh
     OutSide = NewOutsideValue
-    W.Refresh
-  Else
-    OutSide = NewOutsideValue
-  End If
 End Sub
 Private Sub W_MouseUp(Button As Integer, Shift As Integer, ByVal x As Single, ByVal y As Single)
   If BDown And Not OutSide Then CheckAndRaiseClick

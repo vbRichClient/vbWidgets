@@ -41,11 +41,8 @@ Private Sub W_MouseDown(Button As Integer, Shift As Integer, ByVal x As Single, 
   If Button = 1 Then BDown = True: W.Refresh
 End Sub
 Private Sub W_MouseMove(Button As Integer, Shift As Integer, ByVal x As Single, ByVal y As Single)
-  
   OutSide = (x < 0 Or x > dx Or y < 0 Or y > dy)
-  
   MOverArrow = IIf(ArrowType > 0 And Not OutSide And x > dx - 16, True, False)
-  
   W.Refresh
 End Sub
 Private Sub W_MouseUp(Button As Integer, Shift As Integer, ByVal x As Single, ByVal y As Single)

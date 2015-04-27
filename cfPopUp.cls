@@ -30,13 +30,13 @@ Public Sub Load(Widget As Object, ByVal ScreenX As Long, ByVal ScreenY As Long, 
   If Widget Is Nothing Then Exit Sub
 
   If TypeOf Widget Is cwMenu Then
-    If Not TypeOf Widget.InitiatorWidget Is cwMenu Then
-      If Not ActivePopUp Is Nothing Then If Not ActivePopUp Is Me Then ActivePopUp.Unload
-      Set ActivePopUp = Me
+    If Not TypeOf Widget.InitiatorWidget.object Is cwMenu Then
+      If Not fActivePopUp Is Nothing Then If Not fActivePopUp Is Me Then fActivePopUp.Unload
+      Set fActivePopUp = Me
     End If
   Else
-    If Not ActivePopUp Is Nothing Then If Not ActivePopUp Is Me Then ActivePopUp.Unload
-    Set ActivePopUp = Me
+    If Not fActivePopUp Is Nothing Then If Not fActivePopUp Is Me Then fActivePopUp.Unload
+    Set fActivePopUp = Me
   End If
   
   Set Form = Cairo.WidgetForms.CreateChild(0, True, False, False, WithDropShadow)
@@ -56,7 +56,7 @@ End Sub
 Public Sub Unload()
   On Error Resume Next
     Set tmrPopUp = Nothing
-    If Not ActivePopUp Is Nothing Then If ActivePopUp Is Me Then Set ActivePopUp = Nothing
+    If Not fActivePopUp Is Nothing Then If fActivePopUp Is Me Then Set fActivePopUp = Nothing
   
     If Not Form Is Nothing Then
       If Not Form.Widgets Is Nothing Then Form.Widgets.RemoveAll
@@ -67,7 +67,11 @@ Public Sub Unload()
 End Sub
 
 Private Sub Form_ActivateApp(ByVal Activated As Boolean, ByVal OtherThreadID As Long)
-  If Not Activated Then RaiseEvent AppDeactivate
+  If Not Activated Then
+    On Error Resume Next
+      RaiseEvent AppDeactivate
+    If Err Then Err.Clear
+  End If
 End Sub
 
 Private Sub Form_MouseDown(Button As Integer, Shift As Integer, x As Single, y As Single)

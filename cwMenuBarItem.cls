@@ -41,38 +41,43 @@ Public Property Set DataSource(NewValue As cMenuItem)
 End Property
 
 Public Sub ShowPopUp(Optional ByVal WithFocus As Boolean)
-Dim MenuBar As cwMenuBar
-  If Not W.Enabled Then Exit Sub
-
+Dim MenuBar As cwMenuBar, ShowIt As Boolean
+  If Not W.Enabled Or W.Parent Is Nothing Then Exit Sub
+ 
   Set MenuBar = W.Parent.object
   If Not MenuBar.CurPopUp Is Nothing Then
-    If Not MenuBar.CurPopUp.DataSource Is mDataSource Then MenuBar.CurPopUp.DestroyPopup
+    MenuBar.CurPopUp.DestroyPopup
+    Set MenuBar.CurPopUp = Nothing
   End If
   Set MenuBar.CurPopUp = New cwMenu
-  MenuBar.CurPopUp.Widget.FontSize = W.FontSize
-  MenuBar.CurPopUp.InitAndShow W, mDataSource, PopupBehaviourDropDownLeftAligned, WithFocus
+      MenuBar.CurPopUp.Widget.FontSize = W.FontSize
+      MenuBar.CurPopUp.InitAndShow W, mDataSource, PopupBehaviourDropDownLeftAligned, WithFocus
 End Sub
 
 Private Sub W_MouseDown(Button As Integer, Shift As Integer, ByVal x As Single, ByVal y As Single)
-  If Button = 1 Then ShowPopUp
+  If Button = 1 And Not IsOwnPopupVisible Then ShowPopUp
 End Sub
 Private Sub W_MouseEnter(ByVal MouseLeaveWidget As vbRichClient5.cWidgetBase)
-  If IsPopupVisible And Not IsOwnPopupVisible Then
-    ShowPopUp
-  End If
+  If IsPopupVisible And Not IsOwnPopupVisible Then ShowPopUp
   W.Parent.object.CleanupActiveState W
   W.Parent.Refresh
 End Sub
 Private Function IsOwnPopupVisible() As Boolean
 Dim MenuBar As cwMenuBar
-  Set MenuBar = W.Parent.object
   If IsPopupVisible Then
+    Set MenuBar = W.Parent.object
     If MenuBar.CurPopUp.DataSource Is Nothing Then Exit Function
     IsOwnPopupVisible = MenuBar.CurPopUp.DataSource Is mDataSource
   End If
 End Function
 Private Function IsPopupVisible() As Boolean
-  IsPopupVisible = Not W.Parent.object.CurPopUp Is Nothing
+Dim MenuBar As cwMenuBar
+  If W.Parent Is Nothing Then Exit Function
+  Set MenuBar = W.Parent.object
+  If MenuBar.CurPopUp Is Nothing Then Exit Function
+  If MenuBar.CurPopUp.fPopUp Is Nothing Then Exit Function
+  If MenuBar.CurPopUp.fPopUp.Form Is Nothing Then Exit Function
+  IsPopupVisible = True
 End Function
 
 Private Sub W_MouseLeave(ByVal MouseEnterWidget As vbRichClient5.cWidgetBase)
