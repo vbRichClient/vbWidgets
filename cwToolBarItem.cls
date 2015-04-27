@@ -22,8 +22,9 @@ Public ArrowType As DropDownArrowType
 Private BDown As Boolean, OutSide As Boolean, MOverArrow As Boolean
 
 Private dx As Single, dy As Single, Alpha As Single
-Private WithEvents W As cWidgetBase
+Private WithEvents W As cWidgetBase, WithEvents tmrDecouple As cTimer
 Attribute W.VB_VarHelpID = -1
+Attribute tmrDecouple.VB_VarHelpID = -1
 
 Private Sub Class_Initialize()
   Set W = Cairo.WidgetBase
@@ -36,6 +37,10 @@ End Property
 Public Property Get Widgets() As cWidgets
   Set Widgets = W.Widgets
 End Property
+ 
+Private Sub Class_Terminate()
+  Set tmrDecouple = Nothing
+End Sub
 
 Private Sub W_MouseDown(Button As Integer, Shift As Integer, ByVal x As Single, ByVal y As Single)
   If Button = 1 Then BDown = True: W.Refresh
@@ -51,14 +56,21 @@ Private Sub W_MouseUp(Button As Integer, Shift As Integer, ByVal x As Single, By
 End Sub
 
 Private Sub CheckAndRaiseClick()
-  If MOverArrow Then
-    RaiseEvent ArrowClick
-    W.RaiseBubblingEvent Me, "ArrowClick"
-  Else
-    If IsCheckable Then Checked = Not Checked
-    RaiseEvent Click
-    W.RaiseBubblingEvent Me, "Click"
-  End If
+  If Not MOverArrow And IsCheckable Then Checked = Not Checked
+  Set tmrDecouple = New_c.Timer(15, True, MOverArrow)
+End Sub
+
+Private Sub tmrDecouple_Timer()
+Dim OverArrow As Boolean
+    OverArrow = tmrDecouple.Tag
+    Set tmrDecouple = Nothing
+    If OverArrow Then
+      RaiseEvent ArrowClick
+      W.RaiseBubblingEvent Me, "ArrowClick"
+    Else
+      RaiseEvent Click
+      W.RaiseBubblingEvent Me, "Click"
+    End If
 End Sub
 
 Private Sub W_MouseEnter(ByVal MouseLeaveWidget As vbRichClient5.cWidgetBase)
