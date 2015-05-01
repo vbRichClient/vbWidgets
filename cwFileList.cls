@@ -142,6 +142,7 @@ End Sub
  
 Private Sub W_KeyUp(KeyCode As Integer, Shift As Integer)
 Dim Index As Long, WChar As String
+    If KeyCode <= 40 Then Exit Sub
     Index = FindIndex(KeyCode, IIf(mLastKeyCode = KeyCode, mLastIndex + 1, 0), WChar)
     If mLastKeyCode = KeyCode And WChar <> ChrW$(KeyCode) Then Index = FindIndex(KeyCode, 0, WChar)
   
