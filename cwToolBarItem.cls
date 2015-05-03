@@ -101,11 +101,9 @@ Const ArrowSize& = 8
   End If
   
   IcoOffs = IIf(Len(Caption), 5, 3)
+  If Len(W.ImageKey) Then xOffs = dy
   
-  W.SelectFontSettingsInto CC
-
   If W.Enabled Then
-    W.SelectFontSettingsInto CC
     CC.SetLineWidth IIf(BDown Or Checked, 1.1, 1)
     
     If BDown Or Checked Then
@@ -131,11 +129,9 @@ Const ArrowSize& = 8
       End If
     End If
     
-    If Len(W.ImageKey) Then
-      CC.RenderSurfaceContent W.ImageKey, IcoOffs, 2.5, 19, 19, CAIRO_FILTER_BEST, W.Alpha, True
-      xOffs = dy
-    End If
+    If Len(W.ImageKey) Then CC.RenderSurfaceContent W.ImageKey, IcoOffs, 2.5, 19, 19, CAIRO_FILTER_BEST, W.Alpha, True
     
+    W.SelectFontSettingsInto CC
     If Len(Caption) Then CC.TextOut 5 + xOffs, 4, Caption
 
   Else 'disabled state
@@ -145,6 +141,7 @@ Const ArrowSize& = 8
     Srf.AdjustColors 100
     CC.RenderSurfaceContent Srf, IcoOffs, 2.5, 19, 19, CAIRO_FILTER_BEST, 0.3, True
     
+    W.SelectFontSettingsInto CC, W.DisabledColor
     If Len(Caption) Then CC.TextOut 5 + xOffs, 4, Caption
   End If
   
