@@ -112,7 +112,8 @@ End Property
 Private Sub DropDown_PopupWidgetRequest(WidgetInstance As Object, WidthPxl As Single, HeightPxl As Single)
   Set WidgetInstance = VList
   W.Tag = VList.ListIndex
-  HeightPxl = 200 * W.Zoom
+  If VList.ListCount Then HeightPxl = (VList.ListCount * VList.RowHeight + 4) * W.Zoom
+  If HeightPxl = 0 Or HeightPxl > 200 * W.Zoom Then HeightPxl = 200 * W.Zoom
 End Sub
 Private Sub DropDown_PopupEscapeKeyPressed(DestroyPopup As Boolean)
   VList.ListIndex = W.Tag
@@ -139,7 +140,7 @@ Dim DoRaise As Boolean
     RaiseEvent Click
     W.RaiseBubblingEvent Me, "Click"
   End If
-  If mDS.AbsolutePosition > 0 Then DropDown.Caption = mDS.FieldValue(FieldIndex)
+  If mDS.AbsolutePosition > 0 Then DropDown.Caption = mDS.FieldValue(FieldIndex) Else DropDown.Caption = ""
 End Sub
 Private Sub VList_MouseUpClick()
   DropDown.DestroyPopup
@@ -156,4 +157,12 @@ Private Sub W_KeyDown(KeyCode As Integer, Shift As Integer)
     Case vbKeyLeft, vbKeyUp:    If ListIndex > 0 Then ListIndex = ListIndex - 1
     Case vbKeyRight, vbKeyDown: If ListIndex < ListCount - 1 Then ListIndex = ListIndex + 1
   End Select
+End Sub
+
+Private Sub W_MouseWheel(ByVal MouseKeys As Long, ByVal Rotation As Long, ByVal LineOffset As Long, ByVal xAbs As Single, ByVal yAbs As Single)
+  If DropDown.PopupWidget Is Nothing And VList.ListCount > 0 And W.Enabled Then
+    Dim NewIndex: NewIndex = VList.ListIndex + LineOffset
+    If NewIndex < 0 Then NewIndex = 0 Else If NewIndex >= VList.ListCount Then NewIndex = VList.ListCount - 1
+    VList.ListIndex = NewIndex
+  End If
 End Sub

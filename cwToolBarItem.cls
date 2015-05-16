@@ -16,10 +16,9 @@ Option Explicit
 Event Click()
 Event ArrowClick()
 
-Public Caption As String, IsCheckable As Boolean, Checked As Boolean
-Public ArrowType As DropDownArrowType
+Public Caption As String, IsCheckable As Boolean, ArrowType As DropDownArrowType
 
-Private BDown As Boolean, OutSide As Boolean, MOverArrow As Boolean
+Private BDown As Boolean, OutSide As Boolean, MOverArrow As Boolean, mChecked As Boolean
 
 Private dx As Single, dy As Single, Alpha As Single
 Private WithEvents W As cWidgetBase, WithEvents tmrDecouple As cTimer
@@ -55,8 +54,18 @@ Private Sub W_MouseUp(Button As Integer, Shift As Integer, ByVal x As Single, By
   BDown = False: OutSide = False: W.Refresh
 End Sub
 
+Public Property Get Checked() As Boolean
+  Checked = mChecked
+End Property
+Public Property Let Checked(ByVal NewValue As Boolean)
+  If mChecked = NewValue Or Not IsCheckable Then Exit Property
+  mChecked = NewValue
+  Set tmrDecouple = New_c.Timer(15, True, MOverArrow)
+  W.Refresh
+End Property
+
 Private Sub CheckAndRaiseClick()
-  If Not MOverArrow And IsCheckable Then Checked = Not Checked
+  If Not MOverArrow And IsCheckable Then mChecked = Not mChecked
   Set tmrDecouple = New_c.Timer(15, True, MOverArrow)
 End Sub
 
@@ -104,23 +113,23 @@ Const ArrowSize& = 8
   If Len(W.ImageKey) Then xOffs = dy
   
   If W.Enabled Then
-    CC.SetLineWidth IIf(BDown Or Checked, 1.1, 1)
+    CC.SetLineWidth IIf(BDown Or mChecked, 1.1, 1)
     
-    If BDown Or Checked Then
-      If MOverArrow And Not Checked Then CC.ClipExplicit dx - 16, 0, dx, dy
+    If BDown Or mChecked Then
+      If MOverArrow And Not mChecked Then CC.ClipExplicit dx - 16, 0, dx, dy
         CC.RoundedRect 0, 0, dx, dy, 2.2, True
         CC.SetSourceColor W.Parent.BackColor, Alpha, 0.89
         CC.Fill
-      If MOverArrow And Not Checked Then CC.ResetClip
+      If MOverArrow And Not mChecked Then CC.ResetClip
     End If
     
-    If W.MouseOver Or Checked Then
+    If W.MouseOver Or mChecked Then
       CC.RoundedRect 0, 0, dx, dy, 2.2, True
       Set Pat = Cairo.CreateLinearPattern(0, 0, 0, dy)
-          Pat.AddColorStop 0, vbWhite, , IIf(BDown Or Checked, 0.48, 0.82)
-          Pat.AddColorStop 1, vbWhite, , IIf(BDown Or Checked, 0.61, 0.48)
+          Pat.AddColorStop 0, vbWhite, , IIf(BDown Or mChecked, 0.48, 0.82)
+          Pat.AddColorStop 1, vbWhite, , IIf(BDown Or mChecked, 0.61, 0.48)
       CC.Stroke , Pat
-      CC.DrawLine 2, dy, dx - 3, dy, True, 1, IIf(BDown Or Checked, vbWhite, vbBlack), 0.2
+      CC.DrawLine 1.5, dy - 0.2, dx - 2.5, dy - 0.2, True, 1, IIf(BDown Or mChecked, vbWhite, vbBlack), 0.2
 
       If ArrowType <> ddNone And W.MouseOver Then
         W.Alpha = 0.85

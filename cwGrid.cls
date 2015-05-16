@@ -20,13 +20,13 @@ Event DeleteAttempt(Cancel As Boolean)
 Event HeaderClick(ByVal ColIdx As Long, State As ColumnSortState)
 Event DataSourcePositionChanged()
 
-Private WithEvents VList As cwVList 'we inherit visually from a preimplemented Widget
+Public WithEvents VList As cwVList 'we inherit visually from a preimplemented Widget
 Attribute VList.VB_VarHelpID = -1
 Private WithEvents W As cWidgetBase, WithEvents mDS As cDataSource, mDataSourceKey As String
 Attribute W.VB_VarHelpID = -1
 Attribute mDS.VB_VarHelpID = -1
 
-Private mAllowEdit As Boolean, mAllowAddNew As Boolean, mAllowDelete As Boolean, mlngAlternateRowColor As Long
+Private mAllowEdit As Boolean, mAllowAddNew As Boolean, mAllowDelete As Boolean
 
 Private Sub Class_Initialize()
   Set VList = New cwVList
@@ -40,7 +40,6 @@ Private Sub Class_Initialize()
       W.RuntimePropertiesCommaSeparated = "ColumnIndex,ColumnCount,ColumnWidth,RowIndex"
 '      W.BackColor = -1
 '      W.Alpha = 0.7
-  mlngAlternateRowColor = -1
 End Sub
 
 Public Property Get Widget() As cWidgetBase
@@ -71,7 +70,7 @@ End Property
 Public Property Let ColumnIndex(ByVal NewValue As Long)
   VList.ColumnIndex = NewValue
 End Property
-
+ 
 Public Property Get ColumnCount() As Long
   ColumnCount = VList.ColumnCount
 End Property
@@ -153,6 +152,11 @@ Public Property Let DataSourceKey(ByVal NewValue As String)
   On Error GoTo 0
 End Property
 
+Public Function SetDataSource(CollectionOrRecordset As Object, Key As String) As cDataSource
+Set SetDataSource = New_c.DataSource
+    SetDataSource.Init CollectionOrRecordset, Key, Cairo.DataSourceDispatcher
+    Set DataSource = SetDataSource
+End Function
 Public Property Get DataSource() As cDataSource
   Set DataSource = mDS
 End Property
@@ -162,16 +166,22 @@ Dim i&, Cols&, Rows&
     Rows = DS.RecordCount
     Cols = DS.FieldCount
   End If
- 
+  
   W.LockRefresh = True
     Set mDS = DS
 
     ResetSortStates 'clear the last Column-Sort-infos
  
     VList.ListCount = Rows
+    VList.ColumnCount = 1
     VList.ColumnCount = Cols
- 
-    VList.ListIndex = -1 'the Rs is at BOF after that (no selection)
+    
+    
+   If VList.ListIndex <> -1 Then
+     VList.ListIndex = -1 'the Rs is at BOF after that (no selection)
+   Else
+     VList_Click
+   End If
   W.LockRefresh = False
 End Property
 
@@ -179,15 +189,27 @@ Public Sub ResetSortStates()
   VList.ResetSortStates
 End Sub
 
+Private Sub mDS_NewDataContentArrived()
+  VList.ListCount = mDS.RecordCount
+End Sub
+Private Sub mDS_FieldChange(ByVal RowIdxZeroBased As Long, ByVal ColIdxZeroBased As Long)
+  W.Refresh
+End Sub
+Private Sub mDS_AddNew(ByVal NewRowIdxZeroBased As Long)
+  VList.ListCount = VList.ListCount + 1
+  mDS_Move NewRowIdxZeroBased
+End Sub
 Private Sub mDS_Move(ByVal NewRowIdxZeroBased As Long)
   If VList.ListIndex = NewRowIdxZeroBased Then Exit Sub
   VList.ListIndex = NewRowIdxZeroBased
   RaiseEvent DataSourcePositionChanged
   W.RaiseBubblingEvent Me, "DataSourcePositionChanged"
 End Sub
-
-Private Sub mDS_NewDataContentArrived()
-  VList.ListCount = mDS.RecordCount
+Private Sub mDS_Delete(ByVal NewRowIdxZeroBased As Long)
+  VList.ListCount = VList.ListCount - 1
+  VList.ListIndex = NewRowIdxZeroBased
+  RaiseEvent DataSourcePositionChanged
+  W.RaiseBubblingEvent Me, "DataSourcePositionChanged"
 End Sub
 
 Private Sub VList_Click()
@@ -252,11 +274,12 @@ Dim i As Long, yy As Double, State As enmThemeDrawingState
 End Sub
 
 Private Sub VList_OwnerDrawItem(ByVal Index As Long, CC As cCairoContext, ByVal dx As Single, ByVal dy As Single, ByVal Alpha As Single)
-Dim i As Long, StartIdx As Long, V, S As String, xx As Double, ww As Long
+Dim i As Long, StartIdx As Long, V, s As String, xx As Double, ww As Long
   If mDS Is Nothing Then Exit Sub
  
   If VList.HScrollBar.Widget.Visible Then StartIdx = VList.HScrollBar.Value
- 
+
+  W.SelectFontSettingsInto CC
   xx = 0
   For i = StartIdx To StartIdx + VList.VisibleCols - 1
     ww = VList.ColumnWidth(i)
@@ -264,30 +287,27 @@ Dim i As Long, StartIdx As Long, V, S As String, xx As Double, ww As Long
       If i = StartIdx + VList.VisibleCols - 1 Then ww = dx - xx
       V = mDS.ValueMatrix(Index, VList.ColMapIndex(i))
       Select Case VarType(V)
-        Case vbByte Or vbArray: S = "<BLOB>"
-        Case Else: S = V
+        Case vbByte Or vbArray: s = "<BLOB>"
+        Case Else: s = V
       End Select
-      If AlternateRowColor <> -1 Then
-        'here we ensure a different Background-Line-Coloring for Odd-Indexes.
-        If Index Mod 2 Then
-          CC.Rectangle 0, 0, dx, dy, True
-            CC.SetSourceColor AlternateRowColor
-          CC.Fill
-        End If
-      End If
  
-      CC.DrawText xx, 0, ww, dy, S, True, vbLeftJustify, 2, True
+      CC.DrawText xx, 0, ww, dy, s, True, vbLeftJustify, 2, True
       xx = xx + ww
     End If
   Next i
 End Sub
  
+Public Property Get RowColor() As Long
+  RowColor = VList.RowColor
+End Property
+Public Property Let RowColor(ByVal NewValue As Long)
+  VList.RowColor = NewValue
+End Property
+ 
 Public Property Get AlternateRowColor() As Long
-  AlternateRowColor = mlngAlternateRowColor
+  AlternateRowColor = VList.AlternateRowColor
+End Property
+Public Property Let AlternateRowColor(ByVal NewValue As Long)
+  VList.AlternateRowColor = NewValue
 End Property
 
-Public Property Let AlternateRowColor(ByVal lngAlternateRowColor As Long)
-  If lngAlternateRowColor = mlngAlternateRowColor Then Exit Property
-  mlngAlternateRowColor = lngAlternateRowColor
-  W.Refresh
-End Property

@@ -79,6 +79,7 @@ End Function
 Private Sub W_AddedToHierarchy()
   dx = W.Width
   dy = W.Height
+  W_ContainerResize
 End Sub
 
 Private Sub W_BubblingEvent(Sender As Object, EventName As String, P1 As Variant, P2 As Variant, P3 As Variant, P4 As Variant, P5 As Variant, P6 As Variant, P7 As Variant)
@@ -90,7 +91,7 @@ Private Sub W_BubblingEvent(Sender As Object, EventName As String, P1 As Variant
 End Sub
 
 Private Sub W_ContainerResize()
-  W.Move 0, 0, W.Parent.Width, W.Height
+  W.Move 0, 0, W.Parent.ScaleWidth, W.Height
   W.Refresh
 End Sub
  

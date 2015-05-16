@@ -15,7 +15,7 @@ Option Explicit
 
 Event OwnerDrawOnTop(CC As cCairoContext, ByVal dx As Single, ByVal dy As Single)
 
-Private Alpha As Single, dx As Single, dy As Single
+Private Alpha As Single, dx As Single, dy As Single, mCaption As String
 
 Private WithEvents W As cWidgetBase
 Attribute W.VB_VarHelpID = -1
@@ -24,13 +24,18 @@ Private Sub Class_Initialize()
   Set W = Cairo.WidgetBase
       W.ForwardFocus = True
 End Sub
-Public Property Get Widget() As cWidgetBase
-  Set Widget = W
+Public Property Get Widget() As cWidgetBase: Set Widget = W: End Property
+Public Property Get Widgets() As cWidgets: Set Widgets = W.Widgets: End Property
+
+Public Property Get Caption() As String
+  Caption = mCaption
 End Property
-Public Property Get Widgets() As cWidgets
-  Set Widgets = W.Widgets
+Public Property Let Caption(ByVal NewValue As String)
+  If mCaption = NewValue Then Exit Property
+  mCaption = NewValue
+  W.Refresh
 End Property
- 
+
 Private Sub W_AddedToHierarchy()
   AdjustAlignment
 End Sub
@@ -56,22 +61,23 @@ Dim Pat As cCairoPattern
   If dy = 0 Then dy = W.Height
   
   Set Pat = Cairo.CreateLinearPattern(0, 0, 0, dy)
-  Pat.AddColorStop 0, W.BackColor, Alpha, 1.1
-  Pat.AddColorStop 1, W.BackColor, Alpha, 0.9
-  CC.Rectangle 0, 1, dx, dy - 1, True
+      Pat.AddColorStop 0, W.BackColor, Alpha, 1.1
+      Pat.AddColorStop 1, W.BackColor, Alpha, 0.9
+  CC.Rectangle 0, 0, dx + 1, dy + 1
   CC.Fill , Pat
   
-  CC.SetLineCap Cairo_LINE_CAP_SQUARE
+  CC.SetLineCap CAIRO_LINE_CAP_SQUARE
     CC.SetLineWidth 1, True
     CC.SetSourceColor W.BorderColor, 0.8
     CC.DrawLine 0, 0, dx, 0, True
   CC.Stroke
-  CC.SetSourceColor vbWhite, 0.8
-    CC.DrawLine 0, 1, dx, 1, True
-  CC.Stroke
-  CC.SetSourceColor vbWhite, 0.8, 0.85
-    CC.DrawLine 0, dy - 1, dx, dy - 1, True
-  CC.Stroke
+'  CC.SetSourceColor vbWhite, 0.8
+'    CC.DrawLine 0, 1, dx, 1, True
+'  CC.Stroke
+'  CC.SetSourceColor vbWhite, 0.8, 0.85
+'    CC.DrawLine 0, dy - 1, dx, dy - 1, True
+'  CC.Stroke
+  If Len(mCaption) Then CC.DrawText 7, 0, dx - 7, dy, mCaption, , vbLeftJustify, 2, True
   
   RaiseEvent OwnerDrawOnTop(CC, dx, dy)
   W.RaiseBubblingEvent Me, "OwnerDrawOnTop", CC, dx, dy

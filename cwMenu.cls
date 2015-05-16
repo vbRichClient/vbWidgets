@@ -204,7 +204,7 @@ Dim i As Long, dx As Double, dy As Double, Caption As String
       dy = mRowHeight
     End If
     
-    Set MenuItem = Widgets.Add(New cwMenuItem, DSItem.Key, 0, mMenuHeight, mMenuWidth - 2, dy)
+    Set MenuItem = Widgets.Add(New cwMenuItem, DSItem.Key, 1, mMenuHeight, mMenuWidth - 2, dy)
         MenuItem.Widget.ImageKey = DSItem.IconKey
         MenuItem.Widget.Enabled = DSItem.Enabled
         MenuItem.Widget.FontName = W.FontName
@@ -220,6 +220,7 @@ Dim i As Long, dx As Double, dy As Double, Caption As String
         If DSItem.SubItemCount Then Set MenuItem.SubMenuDS = DSItem
     mMenuHeight = mMenuHeight + dy
   Next i
+  mMenuWidth = mMenuWidth + 1
   mMenuHeight = mMenuHeight + 4
 End Sub
 
@@ -531,7 +532,7 @@ Private Sub W_Paint(CC As cCairoContext, ByVal xAbs As Single, ByVal yAbs As Sin
   CC.Paint
   CC.SetLineWidth 1, True
   W.Alpha = 0.7
-  Cairo.Theme.DrawTo CC, W, thmTypeBorder, 0, 0, 0, dx_Aligned, dy_Aligned
+  Cairo.Theme.DrawTo CC, W, thmTypeBorder, 0, 0, 0, dx_Aligned, dy_Aligned, 0
   W.Alpha = 1
 End Sub
 
@@ -540,26 +541,27 @@ Private Sub UnCheckAllMenuOptions(MItem As cwMenuItem)
 Dim MItemX As cwMenuItem, i As Long, MIdx As Long
   If MItem.Widget.Parent Is Nothing Then Exit Sub
   If MItem.Widget.Parent.ChildCount = 0 Then Exit Sub
-  
-  MIdx = MItem.Widget.Parent.Widgets.GetOneBasedChildIndexByKey(MItem.Widget.Key)
-  For i = MIdx - 1 To 1 Step -1 'first we go upwards
-    If TypeOf MItem.Widget.Parent.Widgets(i) Is cwMenuItem Then
-      Set MItemX = MItem.Widget.Parent.Widgets(i)
-      If MItemX.Caption = "-" Then Exit For
-      If MItemX.IsOption Then
-        mDataSource.SubItemByKey(MItemX.Widget.Key).Checked = False
+  On Error Resume Next
+    MIdx = MItem.Widget.Parent.Widgets.GetOneBasedChildIndexByKey(MItem.Widget.Key)
+    For i = MIdx - 1 To 1 Step -1 'first we go upwards
+      If TypeOf MItem.Widget.Parent.Widgets(i) Is cwMenuItem Then
+        Set MItemX = MItem.Widget.Parent.Widgets(i)
+        If MItemX.Caption = "-" Then Exit For
+        If MItemX.IsOption Then
+          mDataSource.SubItemByKey(MItemX.Widget.Key).Checked = False
+        End If
       End If
-    End If
-  Next
-  For i = MIdx To MItem.Widget.Parent.Widgets.Count  'now we loop downwards
-    If TypeOf MItem.Widget.Parent.Widgets(i) Is cwMenuItem Then
-      Set MItemX = MItem.Widget.Parent.Widgets(i)
-      If MItemX.Caption = "-" Then Exit For
-      If MItemX.IsOption Then
-        mDataSource.SubItemByKey(MItemX.Widget.Key).Checked = False
+    Next
+    For i = MIdx To MItem.Widget.Parent.Widgets.Count  'now we loop downwards
+      If TypeOf MItem.Widget.Parent.Widgets(i) Is cwMenuItem Then
+        Set MItemX = MItem.Widget.Parent.Widgets(i)
+        If MItemX.Caption = "-" Then Exit For
+        If MItemX.IsOption Then
+          mDataSource.SubItemByKey(MItemX.Widget.Key).Checked = False
+        End If
       End If
-    End If
-  Next
+    Next
+  If Err Then Err.Clear
 End Sub
 
 Private Sub Class_Terminate()
