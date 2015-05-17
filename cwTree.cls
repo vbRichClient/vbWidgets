@@ -121,6 +121,10 @@ Dim Btn As cwButton
       Btn.BorderRadius = 8
       Btn.DownStateCaptionOffset = 0
 End Sub
+ 
+Public Property Get LastMouseDownIndex() As Long
+  LastMouseDownIndex = mLastMouseDownHoverIndex
+End Property
 
 Public Sub DrawArrow(CC As cCairoContext, ByVal Index As Long, ByVal xOffs As Single, ByVal ArrowSize As Single, ByVal Expanded As Boolean, Optional ByVal Expandable As Boolean = True)
 Dim State As enmThemeDrawingState
@@ -231,11 +235,11 @@ Dim W As cWidgetBase: Set W = Sender.Widget
   End If
 End Sub
 
-Private Sub W_MouseDown(Button As Integer, Shift As Integer, ByVal X As Single, ByVal Y As Single)
+Private Sub W_MouseDown(Button As Integer, Shift As Integer, ByVal x As Single, ByVal y As Single)
   mLastMouseDownHoverIndex = VList.HoverIndex
 End Sub
 
-Private Sub W_MouseUp(Button As Integer, Shift As Integer, ByVal X As Single, ByVal Y As Single)
+Private Sub W_MouseUp(Button As Integer, Shift As Integer, ByVal x As Single, ByVal y As Single)
   If mInArrowArea And mLastMouseDownHoverIndex = VList.HoverIndex Then ExpandOrCollapse VList.HoverIndex
 End Sub
 
