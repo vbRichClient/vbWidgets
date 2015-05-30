@@ -646,12 +646,12 @@ Static DecimalChar As String, ThousandChar As String, pIsDigit As Long
     AppendChar = False
     
     If Filter And cfpNumber Then AppendChar = New_c.cdeclCall(retLong, pIsDigit, AscW(Char))
+
+    If Filter And cfpBlank Then If Not AppendChar Then AppendChar = (Char = " ")
  
-    If Filter And cfpBlank Then AppendChar = (Char = " ")
+    If Filter And cfpDecimal Then If Not AppendChar Then AppendChar = (Char = DecimalChar)
  
-    If Filter And cfpDecimal Then AppendChar = (Char = DecimalChar)
- 
-    If Filter And cfpThousand Then AppendChar = (Char = ThousandChar)
+    If Filter And cfpThousand Then If Not AppendChar Then AppendChar = (Char = ThousandChar)
  
     If Filter And cfpUppercase Then
       Char = UCase$(Char): AppendChar = True
