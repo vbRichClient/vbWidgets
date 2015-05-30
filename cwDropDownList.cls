@@ -136,11 +136,11 @@ Dim DoRaise As Boolean
       DoRaise = True
     End If
   End If
+  If mDS.AbsolutePosition > 0 Then DropDown.Caption = mDS.FieldValue(FieldIndex) Else DropDown.Caption = ""
   If DoRaise Then
     RaiseEvent Click
     W.RaiseBubblingEvent Me, "Click"
   End If
-  If mDS.AbsolutePosition > 0 Then DropDown.Caption = mDS.FieldValue(FieldIndex) Else DropDown.Caption = ""
 End Sub
 Private Sub VList_MouseUpClick()
   DropDown.DestroyPopup
