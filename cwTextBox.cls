@@ -13,6 +13,16 @@ Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 Option Explicit
 
+Public Enum charFilterPattern
+  cfpNone = 0
+  cfpNumber = 1
+  cfpLowercase = 2
+  cfpUppercase = 4
+  cfpBlank = 8
+  cfpDecimal = 16
+  cfpThousand = 32
+End Enum
+
 Private Enum eMoveCursorType
    movecursor_Char   ' Offset cursor by characters
    movecursor_Word   ' Offset cursor by words
@@ -55,7 +65,7 @@ Private mUndoDepth As Byte
 Private mLocked As Boolean, InsideDraw As Boolean, mAutoSelectAll As Boolean, mHideSelection As Boolean
 Private mTextShadowOffsetX As Single, mTextShadowOffsetY As Single, mTextShadowColor As Long
   
-Public UserdefinedHovering As Boolean
+Public UserdefinedHovering As Boolean, Filter As charFilterPattern
 
 Private WithEvents W As cWidgetBase
 Attribute W.VB_VarHelpID = -1
@@ -586,6 +596,8 @@ Private Sub InsertText(NewText$)
   If mLocked Then Exit Sub
   If Len(NewText) = 0 And mSelLength = 0 Then Exit Sub
   
+  If Filter Then PurgeText NewText
+  
   If mMaxLength > 0 Then
     If Len(NewText) + Len(mText) - mSelLength > mMaxLength Then
       ' Can't insert text without violating MaxLength property value
@@ -617,6 +629,39 @@ Private Sub InsertText(NewText$)
   SetSelection mSelStart + Len(NewText), 0
   RaiseEvent Change
   W.RaiseBubblingEvent Me, "Change"
+End Sub
+
+Private Sub PurgeText(Txt As String)
+Dim i As Long, SB As cStringBuilder, Char As String, AppendChar As Boolean
+Static DecimalChar As String, ThousandChar As String, pIsDigit As Long
+  If Len(DecimalChar) = 0 Then
+    DecimalChar = Right$(Format$(1000, "#,#."), 1)
+    ThousandChar = Mid$(Format$(1000, "#,#."), 2, 1)
+    pIsDigit = New_c.GetFuncPtr("msvcrt", "iswdigit", True)
+  End If
+  
+  Set SB = New_c.StringBuilder
+  For i = 1 To Len(Txt)
+    Char = Mid$(Txt, i, 1)
+    AppendChar = False
+    
+    If Filter And cfpNumber Then AppendChar = New_c.cdeclCall(retLong, pIsDigit, AscW(Char))
+ 
+    If Filter And cfpBlank Then AppendChar = (Char = " ")
+ 
+    If Filter And cfpDecimal Then AppendChar = (Char = DecimalChar)
+ 
+    If Filter And cfpThousand Then AppendChar = (Char = ThousandChar)
+ 
+    If Filter And cfpUppercase Then
+      Char = UCase$(Char): AppendChar = True
+    ElseIf Filter And cfpLowercase Then
+      Char = LCase$(Char): AppendChar = True
+    End If
+    
+    If AppendChar Then SB.Append Char
+  Next i
+  Txt = SB.ToString
 End Sub
 
 Private Sub CopyText()
@@ -1066,7 +1111,7 @@ Static LastTextHeight&
   SetCurFont CC
 
   CC.SetLineWidth 1
-  CC.SetLineCap Cairo_LINE_CAP_SQUARE
+  CC.SetLineCap CAIRO_LINE_CAP_SQUARE
   
   mLastTextHeight = CC.GetFontHeight()
  
@@ -1191,7 +1236,7 @@ Static LastTextHeight&
         End If
   
         CC.SetLineWidth 1, True '<- last param ensures a rounded, pixel-aligned LineWidth
-        CC.SetLineCap Cairo_LINE_CAP_BUTT
+        CC.SetLineCap CAIRO_LINE_CAP_BUTT
         CC.SetSourceColor W.BorderColor, Alpha * 1.2, 0.85
           x2 = Int((Ext + x1 + AlgnOffs + 0.5) * Zoom) / Zoom 'pixel-aligned x-Offset
           CC.DrawLine x2, y1 - 0.5, x2, y1 + RowHeight - 0.5, True
