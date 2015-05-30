@@ -65,7 +65,7 @@ Private mUndoDepth As Byte
 Private mLocked As Boolean, InsideDraw As Boolean, mAutoSelectAll As Boolean, mHideSelection As Boolean
 Private mTextShadowOffsetX As Single, mTextShadowOffsetY As Single, mTextShadowColor As Long
   
-Public UserdefinedHovering As Boolean, Filter As charFilterPattern
+Public UserdefinedHovering As Boolean, Filter As charFilterPattern, FilterAllowExtraChars As String
 
 Private WithEvents W As cWidgetBase
 Attribute W.VB_VarHelpID = -1
@@ -596,7 +596,7 @@ Private Sub InsertText(NewText$)
   If mLocked Then Exit Sub
   If Len(NewText) = 0 And mSelLength = 0 Then Exit Sub
   
-  If Filter Then PurgeText NewText
+  If Filter <> cfpNone Or Len(FilterAllowExtraChars) Then PurgeText NewText
   
   If mMaxLength > 0 Then
     If Len(NewText) + Len(mText) - mSelLength > mMaxLength Then
@@ -653,6 +653,8 @@ Static DecimalChar As String, ThousandChar As String, pIsDigit As Long
  
     If Filter And cfpThousand Then If Not AppendChar Then AppendChar = (Char = ThousandChar)
  
+    If Len(FilterAllowExtraChars) Then If Not AppendChar Then AppendChar = InStr(1, FilterAllowExtraChars, Char, vbTextCompare)
+    
     If Filter And cfpUppercase Then
       Char = UCase$(Char): AppendChar = True
     ElseIf Filter And cfpLowercase Then
