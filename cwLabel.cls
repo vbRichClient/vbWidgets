@@ -48,9 +48,13 @@ Public Property Get Caption() As String
   Caption = mCaption
 End Property
 Public Property Let Caption(ByVal NewValue As String)
-  If mCaption = NewValue Then Exit Property
-  mCaption = NewValue
+Dim AccKey$, Pos&
+  If mCaption = NewValue Then Exit Property Else mCaption = NewValue
   W.Refresh
+  Pos = InStr(Replace(mCaption, "&&", "--"), "&")
+  If Pos Then AccKey = Mid$(Replace(mCaption, "&&", "--"), Pos + 1, 1)
+
+  If Len(AccKey) Then W.AccessKeys = AccKey
 End Property
 
 Public Property Get Alignment() As AlignmentConstants
@@ -133,6 +137,13 @@ Public Property Let TextShadowColor(ByVal NewValue As Long)
   W.Refresh
 End Property
 
+Private Sub W_AccessKeyPress(KeyAscii As Integer)
+Dim NextIndex As Long
+  If W.Parent Is Nothing Then Exit Sub
+  NextIndex = W.Parent.Widgets.GetOneBasedChildIndexByKey(W.Key) + 1
+  If NextIndex <= W.Parent.Widgets.Count Then W.Parent.Widgets(NextIndex).Widget.SetFocus
+End Sub
+
 Private Sub W_Paint(CC As cCairoContext, ByVal xAbs As Single, ByVal yAbs As Single, ByVal dx_Aligned As Single, ByVal dy_Aligned As Single, UserObj As Object)
   Alpha = W.AlphaInherited
   dx = dx_Aligned
@@ -162,9 +173,9 @@ Dim i&
     CC.Save
       CC.TranslateDrawings mTextShadowOffsetX, mTextShadowOffsetY
       CC.TranslateDrawings 0.5, 0.5
-      CC.DrawText mBorderWidth, mBorderWidth, dx, dy, mCaption, Not mWordWrap, mAlignment, mInnerSpace, mVAlign, , , True
+      CC.DrawText mBorderWidth, mBorderWidth, dx, dy, mCaption, Not mWordWrap, mAlignment, mInnerSpace, mVAlign, dtHasAccelerators, , True
       CC.SetLineJoin CAIRO_LINE_JOIN_ROUND
-      CC.SetLineCap Cairo_LINE_CAP_ROUND
+      CC.SetLineCap CAIRO_LINE_CAP_ROUND
       
       For i = 0 To 1 'this loop re-renders always on the same path (ensured by the True-Param in the .Stroke)
         CC.SetLineWidth 4 - 2 * i 'but with decreasing linewidth
@@ -178,6 +189,6 @@ Dim i&
     CC.Restore
   End If
 
-  CC.DrawText mBorderWidth, mBorderWidth, dx, dy, mCaption, Not mWordWrap, mAlignment, mInnerSpace, mVAlign
+  CC.DrawText mBorderWidth, mBorderWidth, dx, dy, mCaption, Not mWordWrap, mAlignment, mInnerSpace, mVAlign, dtHasAccelerators
 End Sub
 
