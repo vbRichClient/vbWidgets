@@ -91,7 +91,7 @@ Private Sub W_BubblingEvent(Sender As Object, EventName As String, P1 As Variant
 End Sub
 
 Private Sub W_ContainerResize()
-  W.Move 0, 0, W.Parent.ScaleWidth, W.Height
+  W.Move 0, W.Top, W.Parent.ScaleWidth, W.Height
   W.Refresh
 End Sub
  
