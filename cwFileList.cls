@@ -15,6 +15,7 @@ Option Explicit
 
 Event Click()
 Event MouseUpClick()
+Event MouseMoveOnListItem(ByVal HoverIndex As Long, ByVal RelX As Single, ByVal RelY As Single)
 
 Public WithEvents VList As cwVList 'we inherit visually from a preimplemented Widget
 Attribute VList.VB_VarHelpID = -1
@@ -119,6 +120,10 @@ End Property
 Private Sub VList_Click()
   RaiseEvent Click
   W.RaiseBubblingEvent Me, "Click"
+End Sub
+
+Private Sub VList_MouseMoveOnListItem(ByVal HoverIndex As Long, ByVal RelX As Single, ByVal RelY As Single)
+  RaiseEvent MouseMoveOnListItem(HoverIndex, RelX, RelY)
 End Sub
 
 Private Sub VList_MouseUpClick()
