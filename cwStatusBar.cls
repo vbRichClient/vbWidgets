@@ -77,6 +77,9 @@ Dim Pat As cCairoPattern
 '  CC.SetSourceColor vbWhite, 0.8, 0.85
 '    CC.DrawLine 0, dy - 1, dx, dy - 1, True
 '  CC.Stroke
+  W.SelectFontSettingsInto CC, vbWhite
+  If Len(mCaption) Then CC.DrawText 7, 1, dx - 7, dy, mCaption, , vbLeftJustify, 2, True, , 0.7
+  W.SelectFontSettingsInto CC
   If Len(mCaption) Then CC.DrawText 7, 0, dx - 7, dy, mCaption, , vbLeftJustify, 2, True
   
   RaiseEvent OwnerDrawOnTop(CC, dx, dy)

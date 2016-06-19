@@ -80,8 +80,8 @@ Private Sub Class_Initialize()
   mTextShadowColor = -1 '-1 Color-Values are (as always) treated as "no color"
   
   Set W = Cairo.WidgetBase
-  W.BackColor = vbWhite
-  W.ForeColor = vbBlack
+  If TypeName(Cairo.Theme) = "cThemeWin7" Then W.BackColor = vbWhite
+ 
   W.ImplementsWheelMessages = True
   W.MousePointer = IDC_IBEAM
   W.RuntimePropertiesCommaSeparated = "SelStart,SelLength,SelText,TopRow"

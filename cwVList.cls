@@ -60,7 +60,8 @@ Attribute W.VB_VarHelpID = -1
  
 Private Sub Class_Initialize()
   Set W = Cairo.WidgetBase
-      W.BackColor = vbWhite
+  
+      If TypeName(Cairo.Theme) = "cThemeWin7" Then W.BackColor = vbWhite
       W.SetClientAreaOffsets 1, 1, 1, 1
       W.ImplementsWheelMessages = True
       W.RuntimePropertiesCommaSeparated = "VisibleRows,ListCount,ScrollIndex,ListIndex,HoverIndex,Selected,ColumnIndex,ColumnCount,ColumnWidth,ColMapIndex,DrawWidth,DrawHeight"

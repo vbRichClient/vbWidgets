@@ -18,17 +18,19 @@ Event DataIndexChange()
 'DataSource-Implementation-Vars
 Private WithEvents mDS As cDataSource, mDataSourceKey As String, mDataField As String
 Attribute mDS.VB_VarHelpID = -1
-
-Private WithEvents W As cWidgetBase, WithEvents VList As cwVList
-Attribute W.VB_VarHelpID = -1
+Public WithEvents VList As cwVList
 Attribute VList.VB_VarHelpID = -1
+Private WithEvents W As cWidgetBase, mShowHoverBar As Boolean
+Attribute W.VB_VarHelpID = -1
 
 Private Sub Class_Initialize()
   Set VList = New cwVList
+ 
   Set W = VList.Widget '<- this does not create a new WidgetBase-Instance, but "inherits" the Vlist-WidgetBase
       W.FocusColor = -1
       W.BorderColor = -1
       W.BackColor = -1
+  ShowHoverBar = True
 End Sub
 
 Public Property Get Widget() As cWidgetBase
@@ -36,6 +38,14 @@ Public Property Get Widget() As cWidgetBase
 End Property
 Public Property Get Widgets() As cWidgets
   Set Widgets = W.Widgets
+End Property
+
+Public Property Get ShowHoverBar() As Boolean
+  ShowHoverBar = mShowHoverBar
+End Property
+Public Property Let ShowHoverBar(ByVal RHS As Boolean)
+  mShowHoverBar = RHS
+  VList.ShowHoverBar = RHS
 End Property
 
 '***************** Start of typical-DataSource-related Procedures ***************
@@ -65,7 +75,7 @@ Public Property Set DataSource(DS As cDataSource)
   If mDS Is Nothing Then Exit Property
   mDataSourceKey = mDS.Key
   VList.ListCount = mDS.RecordCount
-  If mDS.RecordCount Then mDS.MoveFirst
+  If mDS.RecordCount Then mDS.MoveLast: mDS.MoveFirst
 End Property
  
 Public Property Get DataField() As String
@@ -117,6 +127,10 @@ End Sub
 Private Sub VList_OwnerDrawItem(ByVal Index As Long, CC As cCairoContext, ByVal dx As Single, ByVal dy As Single, ByVal Alpha As Single)
   W.SelectFontSettingsInto CC
   CC.DrawText 1, 1, dx, dy, CStr(GetDataValue(Index)), True, vbCenter, 0, True
+End Sub
+
+Private Sub VList_MouseMoveOnListItem(ByVal HoverIndex As Long, ByVal RelX As Single, ByVal RelY As Single)
+  If mShowHoverBar Then VList.ShowHoverBar = (HoverIndex = VList.ListIndex)
 End Sub
 
 
