@@ -251,7 +251,7 @@ Private Sub Draw(CC As cCairoContext)
 Dim CancelBuiltIn As Boolean
 
     CancelBuiltIn = False: RaiseEvent OwnerDrawScrollArea(CC, 0, 0, dx, dy, TLDown, BLDown, CancelBuiltIn)
-    If Not CancelBuiltIn Then DrawScrollArea CC
+    If Not CancelBuiltIn And dy > 27 Then DrawScrollArea CC
     
     CancelBuiltIn = False: RaiseEvent OwnerDrawButtons(CC, 0, 0, dx, dy, ButtonSize, TDown, BDown, CancelBuiltIn)
     If Not CancelBuiltIn Then DrawButtons CC
