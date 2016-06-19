@@ -23,7 +23,7 @@ Public WithEvents DropDown As cwDropDown
 Attribute DropDown.VB_VarHelpID = -1
 Public WithEvents VList As cwVList
 Attribute VList.VB_VarHelpID = -1
-
+ 
 Private WithEvents W As cWidgetBase
 Attribute W.VB_VarHelpID = -1
 
@@ -31,6 +31,7 @@ Private Sub Class_Initialize()
   Set DropDown = New cwDropDown
   Set VList = New cwVList
   Set W = DropDown.Widget
+  DrawFocusRect = True
 End Sub
 
 Public Property Get Widget() As cWidgetBase
@@ -38,6 +39,13 @@ Public Property Get Widget() As cWidgetBase
 End Property
 Public Property Get Widgets() As cWidgets
   Set Widgets = W.Widgets
+End Property
+
+Public Property Get DrawFocusRect() As Boolean
+  DrawFocusRect = DropDown.DrawFocusRect
+End Property
+Public Property Let DrawFocusRect(ByVal RHS As Boolean)
+  DropDown.DrawFocusRect = RHS
 End Property
 
 '***************** Start of typical-DataSource-related Procedures ***************

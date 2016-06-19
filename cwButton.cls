@@ -46,7 +46,7 @@ Private mHAlignment As AlignmentConstants
 Private WithEvents mDS As cDataSource, mDataSourceKey As String, mDataField As String
 Attribute mDS.VB_VarHelpID = -1
 
-Public ImageSize As Long, DownStateCaptionOffset As Long
+Public ImageSize As Long, DownStateCaptionOffset As Long, DrawFocusRect As Boolean
 
 Private WithEvents W As cWidgetBase
 Attribute W.VB_VarHelpID = -1
@@ -58,6 +58,7 @@ Private Sub Class_Initialize()
   mHAlignment = vbCenter
   mValue = 0
   DownStateCaptionOffset = 1
+  DrawFocusRect = True
 End Sub
 Public Property Get Widget() As cWidgetBase
   Set Widget = W
@@ -420,7 +421,7 @@ Dim State As enmThemeDrawingState
   Cairo.Theme.DrawTo CC, W, thmTypeBorder, 0, 0, 0, dx, dy, mBorderRadius
 
   If W.Enabled Then
-    If W.Focused Then Cairo.Theme.DrawTo CC, W, thmTypeDottedRectangle, 0, 2, 2, dx - 4, dy - 4, mBorderRadius - 1
+    If W.Focused And DrawFocusRect Then Cairo.Theme.DrawTo CC, W, thmTypeDottedRectangle, 0, 2, 2, dx - 4, dy - 4, mBorderRadius - 1
     DrawBorderStateOverlays CC
   End If
 End Sub
@@ -437,7 +438,7 @@ Dim State As enmThemeDrawingState
   Cairo.Theme.DrawTo CC, W, thmTypeBorder, thmStatePressed, 0, 0, dx, dy, mBorderRadius
   
   If W.Enabled Then
-    If W.Focused Then Cairo.Theme.DrawTo CC, W, thmTypeDottedRectangle, 0, 2, 2, dx - 4, dy - 4, mBorderRadius - 1
+    If W.Focused And DrawFocusRect Then Cairo.Theme.DrawTo CC, W, thmTypeDottedRectangle, 0, 2, 2, dx - 4, dy - 4, mBorderRadius - 1
     DrawBorderStateOverlays CC
   End If
 End Sub

@@ -53,6 +53,13 @@ Public Property Let Caption(ByVal NewValue As String)
   Btn.Caption = NewValue
 End Property
 
+Public Property Get DrawFocusRect() As Boolean
+  DrawFocusRect = Btn.DrawFocusRect
+End Property
+Public Property Let DrawFocusRect(ByVal RHS As Boolean)
+  Btn.DrawFocusRect = RHS
+End Property
+
 Public Property Get PopupWidget() As Object
   Set PopupWidget = mPopupWidget
 End Property
