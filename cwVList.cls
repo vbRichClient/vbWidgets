@@ -459,6 +459,7 @@ Dim DoRefresh As Boolean
         mHoverIndex = VScrollBar.Value
         mListIndex = mHoverIndex
       VScrollBar.Widget.LockRefresh = False
+      VScrollBar_Change
       DoRefresh = True
     ElseIf TScroll.Tag = "Down" Then
       VScrollBar.Widget.LockRefresh = True
@@ -467,6 +468,7 @@ Dim DoRefresh As Boolean
         If mHoverIndex > mListCount - 1 Then mHoverIndex = mListCount - 1
         mListIndex = mHoverIndex
       VScrollBar.Widget.LockRefresh = False
+      VScrollBar_Change
       DoRefresh = True
     End If
   End If
@@ -725,15 +727,24 @@ Dim i&, NewSel&
 
 FinalizeSelection:
   mSelX = 0: mSelY = 0
-  TScroll.Enabled = False
+ 
+  If TScroll.Enabled Then
+     TScroll.Enabled = False
+     If mVisibleRows = 1 And VScrollBar.Value <> mListIndex Then
+        mListIndex = VScrollBar.Value: mHoverIndex = mListIndex: NewSel = mListIndex
+        W.Refresh
+     End If
+  End If
+ 
+  
   If mSelectionInProgress Then
-    mSelectionInProgress = False
+     mSelectionInProgress = False
     
     If NewSel < 0 And mListCount > 0 Then
       ChangeListIndex 0
     Else
       If y < mRowHeight * mVisibleRows Then
-        ChangeListIndex NewSel
+         ChangeListIndex NewSel
       End If
     End If
   End If
@@ -851,7 +862,7 @@ Dim i As Long, j As Long, ArrowSize As Long, Width As Single, Pat As cCairoPatte
             End If
           End If
           
-          If Selected(j) And mShowSelection Then
+          If (Selected(j) And mShowSelection) Or (mVisibleRows = 1 And W.Root.MouseKeyDown > 0) Then
             Cairo.Theme.DrawTo CC, W, thmTypeListSelection, 0, 0, 0, Width, mRowHeight + 1, 3
           End If
           
