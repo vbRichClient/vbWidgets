@@ -730,13 +730,14 @@ FinalizeSelection:
  
   If TScroll.Enabled Then
      TScroll.Enabled = False
-     If mVisibleRows = 1 And VScrollBar.Value <> mListIndex Then
-        mListIndex = VScrollBar.Value: mHoverIndex = mListIndex: NewSel = mListIndex
+     If mVisibleRows = 1 Then
+        If mListIndex <> VScrollBar.Value Then mListIndex = VScrollBar.Value
+        mHoverIndex = mListIndex
+        NewSel = mListIndex
         W.Refresh
      End If
   End If
  
-  
   If mSelectionInProgress Then
      mSelectionInProgress = False
     
