@@ -129,8 +129,3 @@ Private Sub VList_OwnerDrawItem(ByVal Index As Long, CC As cCairoContext, ByVal 
   CC.DrawText 1, 1, dx, dy, CStr(GetDataValue(Index)), True, vbCenter, 0, True
 End Sub
 
-Private Sub VList_MouseMoveOnListItem(ByVal HoverIndex As Long, ByVal RelX As Single, ByVal RelY As Single)
-  If mShowHoverBar Then VList.ShowHoverBar = (HoverIndex = VList.ListIndex)
-End Sub
-
-

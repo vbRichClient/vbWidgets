@@ -734,7 +734,6 @@ FinalizeSelection:
         If mListIndex <> VScrollBar.Value Then mListIndex = VScrollBar.Value
         mHoverIndex = mListIndex
         NewSel = mListIndex
-        W.Refresh
      End If
   End If
  
@@ -823,7 +822,7 @@ Dim i As Long, j As Long, ArrowSize As Long, Width As Single, Pat As cCairoPatte
     End If
     
     W.SelectFontSettingsInto CC
-    For i = 0 To mVisibleRows
+    For i = 0 To IIf(mVisibleRows = 1, 0, mVisibleRows)
       j = i + ScrollIndex
 
       If j < mListCount Then
@@ -862,11 +861,13 @@ Dim i As Long, j As Long, ArrowSize As Long, Width As Single, Pat As cCairoPatte
               CC.Stroke
             End If
           End If
-          
-          If (Selected(j) And mShowSelection) Or (mVisibleRows = 1 And W.Root.MouseKeyDown > 0) Then
+ 
+          If mShowSelection And mVisibleRows = 1 Then 'typically the case in e.g. Up/Down-Widgets
+            If (W.Root.MouseKeyDown > 0 And i = 0) Or j = mListIndex Then Cairo.Theme.DrawTo CC, W, thmTypeListSelection, 0, 0, 0, Width, mRowHeight + 1, 3
+          ElseIf mShowSelection And Selected(j) Then
             Cairo.Theme.DrawTo CC, W, thmTypeListSelection, 0, 0, 0, Width, mRowHeight + 1, 3
           End If
-          
+ 
           If mMultiSelect <> vbMultiSelectNone And j = mListIndex And W.Focused Then
             Cairo.Theme.DrawTo CC, W, thmTypeDottedRectangle, 0, 1, 1, Width - 2, mRowHeight - 1, 2
           End If
