@@ -224,8 +224,10 @@ Private Sub VList_OwnerDrawItem(ByVal Index As Long, CC As cCairoContext, ByVal 
 End Sub
 
 Private Sub W_BubblingEvent(Sender As Object, EventName As String, P1 As Variant, P2 As Variant, P3 As Variant, P4 As Variant, P5 As Variant, P6 As Variant, P7 As Variant)
-Dim W As cWidgetBase: Set W = Sender.Widget
-  If mDS Is Nothing Then Exit Sub
+  Dim W As cWidgetBase
+  
+  If mDS Is Nothing Or Sender Is Nothing Then Exit Sub
+  Set W = Sender.Widget
   If W.Key = "btnExpand" And EventName = "Click" Then
     mDS.TreeNodeExpand mDS.Col, True
     VList.ListIndex = -1

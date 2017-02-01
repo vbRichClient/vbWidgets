@@ -15,16 +15,17 @@ Option Explicit
 
 Event Click()
 Event Validate(ByVal NewRowIdx As Long, ByVal NewColIdx As Long, ByVal OldRowIdx As Long, ByVal OldColIdx As Long, ByVal EditBox As cwTextBox, Cancel As Boolean)
-Event AddNewAttempt(Cancel As Boolean)
-Event DeleteAttempt(Cancel As Boolean)
 Event HeaderClick(ByVal ColIdx As Long, State As ColumnSortState)
+Event DataSourceAddNew()
+Event DataSourceDelete()
 Event DataSourcePositionChanged()
 
 Public WithEvents VList As cwVList 'we inherit visually from a preimplemented Widget
 Attribute VList.VB_VarHelpID = -1
-Private WithEvents W As cWidgetBase, WithEvents mDS As cDataSource, mDataSourceKey As String
+Private WithEvents W As cWidgetBase, WithEvents mDS As cDataSource, mDataSourceKey As String, WithEvents tmrPosChanged As cTimer
 Attribute W.VB_VarHelpID = -1
 Attribute mDS.VB_VarHelpID = -1
+Attribute tmrPosChanged.VB_VarHelpID = -1
 
 Private mAllowEdit As Boolean, mAllowAddNew As Boolean, mAllowDelete As Boolean
 
@@ -176,7 +177,6 @@ Dim i&, Cols&, Rows&
     VList.ColumnCount = 1
     VList.ColumnCount = Cols
     
-    
    If VList.ListIndex <> -1 Then
      VList.ListIndex = -1 'the Rs is at BOF after that (no selection)
    Else
@@ -196,18 +196,31 @@ Private Sub mDS_FieldChange(ByVal RowIdxZeroBased As Long, ByVal ColIdxZeroBased
   W.Refresh
 End Sub
 Private Sub mDS_AddNew(ByVal NewRowIdxZeroBased As Long)
+  VList.Widget.LockRefresh = True
   VList.ListCount = VList.ListCount + 1
+  RaiseEvent DataSourceAddNew
+  W.RaiseBubblingEvent Me, "DataSourceAddNew"
   mDS_Move NewRowIdxZeroBased
+  VList.Widget.LockRefresh = False
 End Sub
 Private Sub mDS_Move(ByVal NewRowIdxZeroBased As Long)
   If VList.ListIndex = NewRowIdxZeroBased Then Exit Sub
   VList.ListIndex = NewRowIdxZeroBased
-  RaiseEvent DataSourcePositionChanged
-  W.RaiseBubblingEvent Me, "DataSourcePositionChanged"
+  Set tmrPosChanged = New_c.Timer(10, True)
 End Sub
 Private Sub mDS_Delete(ByVal NewRowIdxZeroBased As Long)
+  VList.Widget.LockRefresh = True
   VList.ListCount = VList.ListCount - 1
   VList.ListIndex = NewRowIdxZeroBased
+  VList.EnsureVisibleSelection
+  RaiseEvent DataSourceDelete
+  W.RaiseBubblingEvent Me, "DataSourceDelete"
+  Set tmrPosChanged = New_c.Timer(10, True)
+  VList.Widget.LockRefresh = False
+End Sub
+
+Private Sub tmrPosChanged_Timer()
+  Set tmrPosChanged = Nothing
   RaiseEvent DataSourcePositionChanged
   W.RaiseBubblingEvent Me, "DataSourcePositionChanged"
 End Sub
@@ -310,4 +323,4 @@ End Property
 Public Property Let AlternateRowColor(ByVal NewValue As Long)
   VList.AlternateRowColor = NewValue
 End Property
-
+ 

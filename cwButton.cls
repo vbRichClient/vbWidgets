@@ -46,7 +46,7 @@ Private mHAlignment As AlignmentConstants
 Private WithEvents mDS As cDataSource, mDataSourceKey As String, mDataField As String
 Attribute mDS.VB_VarHelpID = -1
 
-Public ImageSize As Long, DownStateCaptionOffset As Long, DrawFocusRect As Boolean
+Public ImageSize As Long, DownStateCaptionOffset As Long, DrawFocusRect As Boolean, OptionGroupKey As String
 
 Private WithEvents W As cWidgetBase
 Attribute W.VB_VarHelpID = -1
@@ -311,7 +311,7 @@ Dim V, Button As cwButton
     If TypeOf V Is cwButton Then
       Set Button = V
       If Button.ButtonStyle >= OptionBox Then
-        If Not Button Is Me And Button.Value Then
+        If Not Button Is Me And Button.Value And Button.OptionGroupKey = OptionGroupKey Then
           Button.Value = False
         End If
       End If

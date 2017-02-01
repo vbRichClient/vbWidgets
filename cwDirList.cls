@@ -30,7 +30,7 @@ Private mPath As String, WithEvents mDS As cDataSource
 Attribute mDS.VB_VarHelpID = -1
 
 Private Sub Class_Initialize()
-  LanScanMode = FastSubNetPings_HostNames ' the enum-Value Normal_WNetEnumResource is also possible, but usually takes (much) longer
+  LanScanMode = NormalScan_FromSystemCache ' FastSubNetPings_HostNames ' the enum-Value Normal_WNetEnumResource is also possible, but usually takes (much) longer
   
   Set Tree = New cwTree 'the Widget-Instance, to inherit from
       Tree.DoubleClickExpandsNodes = False '<- since we use the DoubleClick here, to signalize a Path-Change (as in the classic VB-DirListBox)
@@ -97,25 +97,29 @@ Public Property Get Path() As String
 End Property
 Public Property Let Path(ByVal NewValue As String)
 Dim i As Long, Drive, Node As cCollection, IsUNCPath As Boolean, PathArr() As String
+ 
   If Len(NewValue) = 0 Then Exit Property
   If Not New_c.FSO.FolderExists(NewValue) Then Exit Property
-
+  
   If mDS.Count = 0 Then
     mDS.TreeNodeAdd mDS.TreeRoot, "LAN"
+ 
     For Each Drive In New_c.FSO.GetDrives
       mDS.TreeRoot.Add New_c.Collection(False, TextCompare, True), Drive
     Next
   End If
-  
+
   mPath = IIf(Right$(NewValue, 1) = "\", Left$(NewValue, Len(NewValue) - 1), NewValue) 'strip the trailing "\"
+
   IsUNCPath = (Left$(mPath, 2) = "\\")
   PathArr = Split(IIf(IsUNCPath, Mid$(mPath, 3), mPath), "\")
   If IsUNCPath Then
     Set Node = mDS.TreeRoot.ItemByIndex(0)
-    mDS.TreeNodeExpand Node
+    If Not Node Is Nothing Then mDS.TreeNodeExpand Node
   Else
     Set Node = mDS.TreeRoot
   End If
+ 
   For i = 0 To UBound(PathArr)
     If Not Node.Exists(PathArr(i)) Then mDS.TreeNodeAdd Node, PathArr(i)
     Set Node = Node.Item(PathArr(i)) 'here we switch from ParentNode to ChidNode
@@ -136,14 +140,15 @@ Private Sub mDS_TreeStateChanged(ByVal Node As vbRichClient5.cCollection, ByVal 
 Dim i As Long, DirList As cDirList, Path As String, Share
 'Static Shares As cSortedDictionary
   If Reason = NodeExpanded Then
+ 
     Path = ValidatePath(mDS.TreeNodeFullPath(Node))
-    
+ 
     'check for LAN-stuff
     If Path = "LAN" Then
       ExpandLanNode
       Exit Sub
     End If
-    
+ 
     If InStrRev(Path, "\") = 2 Then 'a child directly below the LAN-Node, so it's not (yet) an UNC-Path (only the ServerName or IP)
       Node.RemoveAll
 '      If Shares Is Nothing Then Set Shares = New_c.SortedDictionary(TextCompare)
@@ -155,7 +160,7 @@ Dim i As Long, DirList As cDirList, Path As String, Share
       mDS.TreeRefresh
       Exit Sub
     End If
-
+ 
     'it's a valid Path, so we proceed here now
     On Error Resume Next
       Set DirList = New_c.FSO.GetDirList(Path)

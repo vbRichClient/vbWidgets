@@ -29,7 +29,7 @@ Dim i As Long
   'delete all states up to the last UndoIdx, before adding the new state on Top
   For i = 1 To Idx - 1: States.Remove 1: Next i
 
-  States.Add State, , 1 'add state on top of the States-Collection
+  States.Add State, , 1  'add state on top of the States-Collection
   Idx = 1 'last added state is alwys on top
 End Sub
 

@@ -6,7 +6,7 @@ Public Const HSplitCursor_Png$ = "iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAA
 
 Declare Function GetInstanceEx Lib "DirectCom" (StrPtr_FName As Long, StrPtr_ClassName As Long, ByVal UseAlteredSearchPath As Boolean) As Object
 
-Public New_c As cConstructor, Cairo As cCairo, fActivePopUp As cfPopUp
+Public New_c As cConstructor, Cairo As cCairo, fActivePopUp As cfPopUp, Voice As Object
 
 Public Sub Main()
   On Error Resume Next
@@ -21,4 +21,12 @@ Public Sub Main()
   Set Cairo.Theme = New cThemeWin7
 '  Cairo.FontOptions = CAIRO_ANTIALIAS_DEFAULT
 End Sub
+
+Sub Speak(ByVal Text As String) 'support for blind people (mainly over cVerticalLayout, which simplifies the desing of simple Forms for blind-developers)
+  On Error Resume Next
+    If Voice Is Nothing Then Set Voice = CreateObject("SAPI.SpVoice") 'create the Speech-API-HelperObject
+    If Not Voice Is Nothing Then Voice.Speak Text, 1 Or 2 Or 8 'SVSFlagsAsync OR SVSFPurgeBeforeSpeak OR XML-support
+  If Err Then Err.Clear
+End Sub
+ 
 

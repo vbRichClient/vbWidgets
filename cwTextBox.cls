@@ -64,7 +64,7 @@ Attribute HScrollBar.VB_VarHelpID = -1
 Private mUndoDepth As Byte
 Private mLocked As Boolean, InsideDraw As Boolean, mAutoSelectAll As Boolean, mHideSelection As Boolean
 Private mTextShadowOffsetX As Single, mTextShadowOffsetY As Single, mTextShadowColor As Long
-  
+
 Public UserdefinedHovering As Boolean, Filter As charFilterPattern, FilterAllowExtraChars As String
 
 Private WithEvents W As cWidgetBase
@@ -812,6 +812,7 @@ Private Sub MoveCursor(ByVal Offs&, Optional ByVal MoveType As eMoveCursorType =
 End Sub
 
 Private Sub W_GotFocus()
+  ShiftDown = False
   If mAutoSelectAll Then
     Me.SelectAll
   End If
@@ -887,9 +888,9 @@ End Sub
 Private Sub W_MouseWheel(ByVal MouseKeys As Long, ByVal Rotation As Long, ByVal LineOffset As Long, ByVal xAbs As Single, ByVal yAbs As Single)
   If MouseKeys = 0 Then Spin Rotation, LineOffset
 End Sub
-Private Sub VScrollBar_MouseWheel(ByVal MouseKeys As Long, ByVal Rotation As Long, ByVal LineOffset As Long, ByVal xAbs As Single, ByVal yAbs As Single)
-  If MouseKeys = 0 Then Spin Rotation, LineOffset
-End Sub
+'Private Sub VScrollBar_MouseWheel(ByVal MouseKeys As Long, ByVal Rotation As Long, ByVal LineOffset As Long, ByVal xAbs As Single, ByVal yAbs As Single)
+'  If MouseKeys = 0 Then Spin Rotation, LineOffset
+'End Sub
 Private Sub Spin(ByVal Rotation As Long, ByVal LineOffset As Long)
   If Rotation > 0 Then
     If VSValue > 0 Then TopRow = VSValue + LineOffset
@@ -1058,12 +1059,12 @@ Dim BorderOffs!, Hdy!, Vdx!
         Set VScrollBar = New cwVScrollBar
             VScrollBar.Widget.InnerWidget = True
         VScrollBar.Widget.TabStop = False
-        W.Widgets.Add VScrollBar, "VScrollBar", dx - mScrollerSize - BorderOffs, BorderOffs + 0.5, , dy - 2 * BorderOffs - Hdy
+        W.Widgets.Add VScrollBar, "VScrollBar", dx - mScrollerSize - BorderOffs, BorderOffs + 0.5, mScrollerSize, dy - 2 * BorderOffs - Hdy
         VScrollBar.Max = VSMax
         VScrollBar.LargeChange = VSLargeChange
         VScrollBar.Value = VSValue
       Else
-        VScrollBar.Widget.Move dx - mScrollerSize - BorderOffs, BorderOffs + 0.5, , dy - 2 * BorderOffs - Hdy
+        VScrollBar.Widget.Move dx - mScrollerSize - BorderOffs, BorderOffs + 0.5, mScrollerSize, dy - 2 * BorderOffs - Hdy
         VScrollBar.Max = VSMax
         VScrollBar.LargeChange = VSLargeChange
       End If
@@ -1077,11 +1078,12 @@ Dim BorderOffs!, Hdy!, Vdx!
     If mScrollBars And vbHorizontal Then
       If mScrollerSize < dyy Then Hdy = mScrollerSize Else Hdy = dyy
       
-      HScrollBar.Widget.Move BorderOffs + 0.5, dy - Hdy - BorderOffs, dx - 2 * BorderOffs - Vdx
+      HScrollBar.BottomRightEdgeWidth = IIf(VScrollBar.Widget.Visible, mScrollerSize, 0)
+      HScrollBar.Widget.Move BorderOffs + 0.5, dy - Hdy - BorderOffs, dx - 2 * BorderOffs, Hdy
       HScrollBar.LargeChange = dxx
       HScrollBar.Widget.Refresh
       If Hdy = dyy And Not VScrollBar Is Nothing Then
-        VScrollBar.Widget.Move dx - mScrollerSize - BorderOffs, BorderOffs + 0.5, , dy - 2 * BorderOffs - Hdy '+ 1
+        VScrollBar.Widget.Move dx - mScrollerSize - BorderOffs, BorderOffs + 0.5, mScrollerSize, dy - 2 * BorderOffs - Hdy  '+ 1
       End If
     End If
   If Err Then Err.Clear
@@ -1129,10 +1131,10 @@ Static LastTextHeight&
   If mBorder Then BorderOffs = BorderOffs + 1
  
   If W.BackColor <> -1 Then
-    CancelBuiltIn = False: RaiseEvent OwnerDrawBackGround(CC, 0, 0, dx + BorderOffs, dy, CancelBuiltIn)
+    CancelBuiltIn = False: RaiseEvent OwnerDrawBackGround(CC, 0, 0, dx, dy, CancelBuiltIn)
     If Not CancelBuiltIn Then
       CC.SetSourceColor W.BackColor, Alpha
-        CC.Rectangle 0, 0, dx + BorderOffs, dy
+        CC.Rectangle 0, 0, dx, dy
       CC.Fill
     End If
   End If
@@ -1189,7 +1191,7 @@ Static LastTextHeight&
           If SelEndRow > SelStartRow Then Ext = 0
           EndExt = CC.GetTextExtentPtr(pS + RowsCharOffset(i), SelEndPos)
         End If
-      
+        
         If i >= SelStartRow And i <= SelEndRow Then
           CC.SetSourceColor Color, Alpha * 0.75 'prepare for selections
           CC.Rectangle (Ext + x1 + AlgnOffs), y1, (EndExt - Ext + 0.5), y2 - y1 + 1, False
