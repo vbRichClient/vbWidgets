@@ -99,6 +99,7 @@ Dim Name As String
   Name = Sender.Caption
   If Len(Name) = 0 Then Name = Sender.Widget.Tag
   If Len(Name) = 0 Then Name = Sender.Widget.Key
+  Name = Replace(Name, "&", "")
   If TypeOf Sender Is cwButton Then
     Select Case Sender.ButtonStyle
       Case 0:    GetControlInfo = enPrefix & "Buttton" & enSuffix & Name 'Button deliberately written this way (correctly written it sounded terrible on my machine)
