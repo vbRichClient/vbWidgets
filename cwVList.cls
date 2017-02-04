@@ -545,6 +545,7 @@ Dim DoRefresh As Boolean
         mHoverIndex = VScrollBar.Value
         mListIndex = mHoverIndex
       VScrollBar.Widget.LockRefresh = False
+      VScrollBar_Change
       DoRefresh = True
     ElseIf TScroll.Tag = "Down" Then
       VScrollBar.Widget.LockRefresh = True
@@ -553,6 +554,7 @@ Dim DoRefresh As Boolean
         If mHoverIndex > mListCount - 1 Then mHoverIndex = mListCount - 1
         mListIndex = mHoverIndex
       VScrollBar.Widget.LockRefresh = False
+      VScrollBar_Change
       DoRefresh = True
     End If
   End If
@@ -876,7 +878,15 @@ Dim i&, NewSel&
 
 FinalizeSelection:
   mSelX = 0: mSelY = 0
-  TScroll.Enabled = False
+  If TScroll.Enabled Then
+     TScroll.Enabled = False
+     If mVisibleRows = 1 Then
+        If mListIndex <> VScrollBar.Value Then mListIndex = VScrollBar.Value
+        mHoverIndex = mListIndex
+        NewSel = mListIndex
+'        W.Refresh
+     End If
+  End If
   If mSelectionInProgress Then
     mSelectionInProgress = False
     
@@ -970,7 +980,7 @@ Dim i As Long, j As Long, c As Long, ArrowSize As Long, Width As Single, Pat As 
     
     W.SelectFontSettingsInto CC
     
-    For i = 0 To mVisibleRows
+    For i = 0 To IIf(mVisibleRows = 1, 0, mVisibleRows)
       For c = 0 To mVisibleCols - 1
         j = i * mVisibleCols + c + (ScrollIndex * mVisibleCols)
   
@@ -1012,11 +1022,13 @@ Dim i As Long, j As Long, c As Long, ArrowSize As Long, Width As Single, Pat As 
                 CC.Stroke
               End If
             End If
-            
-            If Selected(j) And mShowSelection Then
+   
+'            If (Selected(j) And mShowSelection) Or (mVisibleRows = 1 And W.Root.MouseKeyDown > 0) Then
+            If mShowSelection And mVisibleRows = 1 Then 'typically the case in e.g. Up/Down-Widgets
+              If (W.Root.MouseKeyDown > 0 And i = 0) Or j = mListIndex Then Cairo.Theme.DrawTo CC, W, thmTypeListSelection, 0, 0, 0, Width, mRowHeight + 1, 3
+            ElseIf mShowSelection And Selected(j) Then
               Cairo.Theme.DrawTo CC, W, thmTypeListSelection, 0, 0, 0, Width, mRowHeight + 1, 3
             End If
-            
             If mMultiSelect <> vbMultiSelectNone And j = mListIndex And W.Focused Then
               Cairo.Theme.DrawTo CC, W, thmTypeDottedRectangle, 0, 1, 1, Width - 2, mRowHeight - 1, 2
             End If

@@ -25,7 +25,7 @@ Attribute W.VB_VarHelpID = -1
 
 Private Sub Class_Initialize()
   Set VList = New cwVList
- 
+  
   Set W = VList.Widget '<- this does not create a new WidgetBase-Instance, but "inherits" the Vlist-WidgetBase
       W.FocusColor = -1
       W.BorderColor = -1
@@ -122,6 +122,7 @@ End Sub
 Private Sub VList_ScrollIndexChange()
   VList.ListIndex = VList.ScrollIndex
   If Not mDS Is Nothing Then mDS.AbsolutePosition = VList.ScrollIndex + 1
+  RaiseEvent DataIndexChange
 End Sub
 
 Private Sub VList_OwnerDrawItem(ByVal Index As Long, CC As cCairoContext, ByVal dx As Single, ByVal dy As Single, ByVal Alpha As Single)
